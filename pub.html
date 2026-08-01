@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion Pub — COBRA</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+}
+
+/* 🔥 HEADER */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+header h1{
+font-size:20px;
+font-weight:bold;
+color:white;
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* 🔥 BACKGROUND DYNAMIQUE */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-2;
+overflow:hidden;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.2);
+z-index:-1;
+}
+
+/* 🔥 AUDIO */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:none;
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+}
+
+/* 🔥 CONTAINER */
+.container{
+width:92%;
+max-width:1200px;
+margin:25px auto;
+}
+
+/* 🔥 SECTION TITLE */
+.section-title{
+font-size:22px;
+margin:30px 0 15px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:14px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+cursor:pointer;
+}
+
+/* 🔥 GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:20px;
+}
+
+/* 🔥 CARD */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:22px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+margin-bottom:20px;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.card h2{
+color:#ff6a00;
+margin-bottom:15px;
+}
+
+.card h3{
+color:#ff6a00;
+margin-bottom:15px;
+}
+
+/* 🔥 INPUT */
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+margin-bottom:15px;
+border-radius:12px;
+border:1px solid #ddd;
+background:rgba(255,255,255,0.95);
+color:#111;
+font-size:15px;
+outline:none;
+}
+
+input:focus{
+border:2px solid #ff6a00;
+box-shadow:0 0 20px rgba(255,106,0,0.35);
+}
+
+/* 🔥 BOUTONS */
+button{
+padding:13px;
+margin-top:12px;
+border:none;
+border-radius:14px;
+font-weight:bold;
+cursor:pointer;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+font-size:15px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.03);
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+.btn-full{
+width:100%;
+}
+
+.btn-delete{
+background:crimson;
+width:100%;
+}
+
+.btn-back{
+background:linear-gradient(45deg,#222,#444);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* 🔥 MEDIA */
+.preview-box img,
+.preview-box video,
+.ad-media{
+width:100%;
+max-height:260px;
+object-fit:cover;
+margin-top:10px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.25);
+}
+
+.ad-info{
+margin-top:10px;
+font-weight:600;
+color:#555;
+}
+
+.badge{
+display:inline-block;
+padding:6px 12px;
+border-radius:999px;
+font-size:13px;
+font-weight:bold;
+background:rgba(255,106,0,0.12);
+color:#ff6a00;
+margin-top:8px;
+}
+
+.hidden{
+display:none;
+}
+
+.empty{
+color:#555;
+font-weight:bold;
+padding:15px;
+}
+
+/* 🔥 RESPONSIVE */
+@media(max-width:700px){
+header h1{
+font-size:17px;
+}
+
+.section-title{
+font-size:18px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND DYNAMIQUE -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage">
+</div>
+<div class="hero-overlay"></div>
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<header>
+<h1>📢 Gestion Pub — COBRA</h1>
+<div class="live-box">
+<div class="live-dot"></div>
+LIVE
+</div>
+</header>
+
+<div class="container">
+
+<!-- AJOUT PUB -->
+<div class="card">
+<h2>📢 Ajouter une publicité</h2>
+
+<input type="file" id="fileInput" accept="image/*,video/*">
+
+<input
+type="number"
+id="durationInput"
+placeholder="Durée en secondes (ex: 30)"
+min="1"
+>
+
+<button class="btn-full" onclick="uploadAd()">
+📤 Upload Pub
+</button>
+
+<div id="preview" class="preview-box"></div>
+</div>
+
+<!-- AJOUT IMAGE DASHBOARD -->
+<div class="card">
+<h2>🖼 Déployer une image Dashboard</h2>
+
+<input type="file" id="dashboardFileInput" accept="image/*">
+
+<button class="btn-full" onclick="uploadDashboardBanner()">
+📤 Upload Image Dashboard
+</button>
+
+<div id="dashboardPreview" class="preview-box"></div>
+</div>
+
+<h2 class="section-title" onclick="toggleDashboardBannersBox()">
+🖼 Images Dashboard publiées ⬇
+</h2>
+
+<div id="dashboardBannersBox">
+  <div class="grid" id="dashboardBannersList"></div>
+</div>
+
+<!-- LISTE PUBS -->
+<h2 class="section-title" onclick="toggleAdsBox()">
+📂 Pubs enregistrées ⬇
+</h2>
+
+<div id="adsBox">
+<div class="grid" id="list"></div>
+</div>
+
+<div class="card">
+<button onclick="goBack()" class="btn-back">
+⬅ Retour
+</button>
+</div>
+
+</div>
+
+<script>
+// 🔥 CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+  authDomain: "securite-53ada.firebaseapp.com",
+  databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+  projectId: "securite-53ada",
+  storageBucket: "securite-53ada.firebasestorage.app",
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+const storage = firebase.storage();
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+const video =
+document.getElementById("bgVideo");
+const image =
+document.getElementById("bgImage");
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+let maliMedia = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97"
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4"
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+switchMedia();
+
+function switchMedia(){
+if(!maliMedia.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = maliMedia[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+
+const duration =
+ad.duration || video.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+};
+
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+ad.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+/* 🔥 FIREBASE SYNC ADS BACKGROUND */
+db.ref("ads").on("value", snap => {
+const data = snap.val();
+
+if(!data) return;
+
+maliMedia = Object.values(data);
+restartSlider();
+});
+
+/* =========================
+📂 ELEMENTS
+========================= */
+const fileInput =
+document.getElementById("fileInput");
+const durationInput =
+document.getElementById("durationInput");
+const preview =
+document.getElementById("preview");
+const list =
+document.getElementById("list");
+
+/* =========================
+👀 PREVIEW
+========================= */
+fileInput.addEventListener("change", () => {
+const file =
+fileInput.files[0];
+
+if(!file) return;
+
+const url =
+URL.createObjectURL(file);
+
+if(file.type.includes("video")){
+preview.innerHTML =
+`<video src="${url}" controls></video>`;
+}else{
+preview.innerHTML =
+`<img src="${url}">`;
+}
+});
+
+/* =========================
+🚀 UPLOAD PUB
+========================= */
+window.uploadAd = function(){
+const file =
+fileInput.files[0];
+
+if(!file){
+alert("❌ Choisis un fichier");
+return;
+}
+
+const duration =
+parseInt(durationInput.value) || 10;
+
+if(duration <= 0){
+alert("❌ La durée doit être supérieure à 0");
+return;
+}
+
+alert("⏳ Upload en cours...");
+
+const id =
+Date.now();
+
+const refStorage =
+storage.ref("ads/" + id + "_" + file.name);
+
+refStorage.put(file)
+.then(async snapshot => {
+const url =
+await snapshot.ref.getDownloadURL();
+
+await db.ref("ads/" + id).set({
+url: url,
+type: file.type.includes("video") ? "video" : "image",
+duration: duration,
+createdAt: Date.now()
+});
+
+alert("✅ Upload réussi !");
+
+fileInput.value = "";
+durationInput.value = "";
+preview.innerHTML = "";
+})
+.catch(e => {
+console.error(e);
+alert("❌ " + e.message);
+});
+};
+
+/* =========================
+📥 LOAD PUBS
+========================= */
+function loadAds(){
+db.ref("ads").on("value", snap => {
+list.innerHTML = "";
+
+const data =
+snap.val();
+
+if(!data){
+list.innerHTML =
+`<div class="card empty">Aucune pub enregistrée</div>`;
+return;
+}
+
+Object.entries(data)
+.reverse()
+.forEach(([id, ad]) => {
+list.innerHTML += `
+<div class="card">
+${ad.type === "video"
+? `<video class="ad-media" src="${ad.url}" muted autoplay loop controls></video>`
+: `<img class="ad-media" src="${ad.url}">`
+}
+
+<div class="ad-info">
+⏱ Durée : ${ad.duration || 10} secondes
+</div>
+
+<div class="badge">
+${ad.type === "video" ? "🎬 Vidéo" : "🖼 Image"}
+</div>
+
+<button class="btn-delete" onclick="deleteAd('${id}')">
+🗑 Supprimer
+</button>
+</div>
+`;
+});
+});
+}
+
+loadAds();
+
+/* =========================
+🗑 SUPPRIMER PUB
+========================= */
+window.deleteAd = function(id){
+if(!confirm("Supprimer cette pub ?")) return;
+
+db.ref("ads/" + id).remove();
+
+alert("✅ Pub supprimée");
+};
+
+/* =========================
+👁 OUVRIR / FERMER
+========================= */
+window.toggleAdsBox = function(){
+document.getElementById("adsBox")
+.classList.toggle("hidden");
+};
+
+/* =========================
+⬅ RETOUR
+========================= */
+window.goBack = function(){
+window.location.href = "admin.html";
+};
+
+const dashboardFileInput = document.getElementById("dashboardFileInput");
+const dashboardPreview = document.getElementById("dashboardPreview");
+
+dashboardFileInput.addEventListener("change", () => {
+  const file = dashboardFileInput.files[0];
+  if(!file) return;
+
+  const url = URL.createObjectURL(file);
+  dashboardPreview.innerHTML = `<img src="${url}">`;
+});
+
+window.uploadDashboardBanner = function(){
+  const file = dashboardFileInput.files[0];
+
+  if(!file){
+    alert("❌ Choisis une image");
+    return;
+  }
+
+  if(!file.type.includes("image")){
+    alert("❌ Seules les images sont acceptées pour le dashboard");
+    return;
+  }
+
+  alert("⏳ Upload image dashboard...");
+
+  const id = Date.now();
+
+  const refStorage =
+    storage.ref("dashboardBanners/" + id + "_" + file.name);
+
+  refStorage.put(file)
+  .then(async snapshot => {
+    const url = await snapshot.ref.getDownloadURL();
+
+    await db.ref("dashboardBanners/" + id).set({
+      url: url,
+      type: "image",
+      duration: 10000,
+      order: id,
+      createdAt: Date.now()
+    });
+
+    alert("✅ Image dashboard déployée !");
+
+    dashboardFileInput.value = "";
+    dashboardPreview.innerHTML = "";
+  })
+  .catch(e => {
+    console.error(e);
+    alert("❌ " + e.message);
+  });
+};
+
+const dashboardBannersList =
+document.getElementById("dashboardBannersList");
+
+function loadDashboardBanners(){
+  db.ref("dashboardBanners").on("value", snap => {
+    dashboardBannersList.innerHTML = "";
+
+    const data = snap.val();
+
+    if(!data){
+      dashboardBannersList.innerHTML =
+      `<div class="card empty">Aucune image Dashboard publiée</div>`;
+      return;
+    }
+
+    Object.entries(data)
+    .reverse()
+    .forEach(([id, banner]) => {
+      dashboardBannersList.innerHTML += `
+        <div class="card">
+          <img class="ad-media" src="${banner.url}">
+
+          <div class="ad-info">
+            🕒 Défilement : ${(banner.duration || 10000) / 1000} secondes
+          </div>
+
+          <div class="badge">🖼 Image Dashboard</div>
+
+          <button class="btn-delete" onclick="deleteDashboardBanner('${id}')">
+            🗑 Supprimer
+          </button>
+        </div>
+      `;
+    });
+  });
+}
+
+loadDashboardBanners();
+
+window.deleteDashboardBanner = function(id){
+  if(!confirm("Supprimer cette image Dashboard ?")) return;
+
+  db.ref("dashboardBanners/" + id).remove();
+
+  alert("✅ Image Dashboard supprimée");
+};
+
+window.toggleDashboardBannersBox = function(){
+  document.getElementById("dashboardBannersBox")
+  .classList.toggle("hidden");
+};
+</script>
+
+</body>
+</html>

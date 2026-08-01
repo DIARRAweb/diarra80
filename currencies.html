@@ -1,0 +1,4453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des devises — COBRA</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+}
+
+/* 🔥 HEADER COMME MONEY-MONITOR */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+header h1{
+font-size:20px;
+font-weight:bold;
+color:white;
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* 🔥 BACKGROUND DYNAMIQUE */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-2;
+overflow:hidden;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.2);
+z-index:-1;
+}
+
+/* 🔥 AUDIO */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:none;
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+}
+
+/* 🔥 CONTAINER */
+.container{
+width:92%;
+max-width:1100px;
+margin:25px auto;
+}
+
+/* 🔥 CARD */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:22px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+margin-bottom:20px;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+h2{
+margin-top:0;
+color:#ff6a00;
+}
+
+/* 🔥 INPUT */
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+border:1px solid #ddd;
+background:rgba(255,255,255,0.95);
+color:#111;
+font-size:15px;
+outline:none;
+}
+
+input::placeholder{
+color:#999;
+}
+
+input:focus{
+border:2px solid #ff6a00;
+box-shadow:0 0 20px rgba(255,106,0,0.35);
+}
+
+/* 🔥 BOUTONS */
+button{
+padding:13px;
+margin-top:12px;
+border:none;
+border-radius:14px;
+font-weight:bold;
+cursor:pointer;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+font-size:15px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.03);
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+.btn-full{
+width:100%;
+}
+
+.btn-back{
+background:linear-gradient(45deg,#222,#444);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.delete-btn{
+background:crimson;
+}
+
+.small-btn{
+padding:10px 14px;
+width:auto;
+}
+
+/* 🔥 SECTION TITLE */
+.section-title{
+font-size:22px;
+margin:30px 0 15px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:14px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+cursor:pointer;
+}
+
+/* 🔥 LISTE */
+.currency-list{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:18px;
+margin-top:15px;
+}
+
+.currency-item{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:18px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+transition:0.3s;
+}
+
+.currency-item:hover{
+transform:translateY(-4px);
+}
+
+.currency-code{
+font-size:26px;
+font-weight:bold;
+color:#ff6a00;
+margin-bottom:8px;
+}
+
+.currency-country{
+font-size:18px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.currency-rate{
+font-size:15px;
+margin-top:8px;
+color:#333;
+font-weight:600;
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin-top:12px;
+flex-wrap:wrap;
+}
+
+.hidden{
+display:none;
+}
+
+/* 🔥 SEARCH */
+.search-box{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.search-box input{
+margin-top:0;
+}
+
+/* 🔥 RESPONSIVE */
+@media(max-width:700px){
+header h1{
+font-size:17px;
+}
+
+.section-title{
+font-size:18px;
+}
+
+.search-box{
+flex-direction:column;
+align-items:stretch;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND DYNAMIQUE -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage">
+</div>
+<div class="hero-overlay"></div>
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<header>
+<h1>💱 Gestion des devises — COBRA</h1>
+<div class="live-box">
+<div class="live-dot"></div>
+LIVE
+</div>
+</header>
+
+<div class="container">
+
+<!-- AJOUT -->
+<div class="card">
+<h2>➕ Ajouter une devise</h2>
+
+<input id="prefix" placeholder="Indicatif téléphone (+1)">
+<input id="code" placeholder="Code devise (USD)">
+<input id="country" placeholder="Pays (USA)">
+<input id="flag" placeholder="Drapeau (🇺🇸)">
+<input id="symbol" placeholder="Symbole ($)">
+
+<button class="btn-full" onclick="addCurrency()">
+➕ Ajouter devise
+</button>
+
+<p
+id="currencySyncStatus"
+style="
+margin-top:14px;
+font-size:14px;
+font-weight:600;
+color:#444;
+line-height:1.5;
+"
+>
+⏳ Préparation du catalogue mondial des devises...
+</p>
+
+<button
+id="showDisabledCurrenciesBtn"
+class="btn-full"
+type="button"
+onclick="showDisabledCurrencies()"
+style="
+background:linear-gradient(45deg,#444,#111);
+"
+>
+♻️ Voir les pays désactivés
+</button>
+
+</div>
+
+<!-- LISTE -->
+<h2 class="section-title" onclick="toggleCurrencyList()">
+🌍 Devises disponibles ⬇
+</h2>
+
+<div id="currencyBox">
+
+<div class="card">
+<div class="search-box">
+<input
+id="searchCurrency"
+placeholder="🔎 Rechercher par indicatif, code ISO ou pays..."
+>
+</div>
+</div>
+
+<div id="currencyList" class="currency-list"></div>
+
+</div>
+
+<div class="card">
+
+<button
+onclick="location.href='admin.html'"
+class="btn-back"
+>
+⬅ Retour
+</button>
+
+<p
+style="
+margin-top:16px;
+font-size:12px;
+color:#666;
+text-align:center;
+"
+>
+Taux indicatifs fournis par
+<a
+href="https://www.exchangerate-api.com"
+target="_blank"
+rel="noopener noreferrer"
+style="color:#ff6a00;font-weight:bold;"
+>
+ExchangeRate-API
+</a>
+</p>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+set,
+update,
+remove,
+get,
+onValue
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+/*
+=====================================================
+MALIPAY — CATALOGUE MONDIAL DES PAYS ET DEVISES
+
+Ce fichier fournit uniquement les métadonnées :
+- pays ;
+- code pays ;
+- indicatif ;
+- devise ;
+- symbole ;
+- drapeau.
+
+Les taux sont chargés séparément par currencies.html.
+Les pays dont la devise n'est pas couverte par
+ExchangeRate-API sont automatiquement ignorés.
+=====================================================
+*/
+
+const MALIPAY_COUNTRY_CATALOG = 
+[
+  {
+    "countryCode": "AF",
+    "country": "Afghanistan",
+    "prefix": "+93",
+    "code": "AFN",
+    "symbol": "AFN",
+    "flag": "🇦🇫"
+  },
+  {
+    "countryCode": "ZA",
+    "country": "Afrique du Sud",
+    "prefix": "+27",
+    "code": "ZAR",
+    "symbol": "R",
+    "flag": "🇿🇦"
+  },
+  {
+    "countryCode": "AL",
+    "country": "Albanie",
+    "prefix": "+355",
+    "code": "ALL",
+    "symbol": "ALL",
+    "flag": "🇦🇱"
+  },
+  {
+    "countryCode": "DZ",
+    "country": "Algérie",
+    "prefix": "+213",
+    "code": "DZD",
+    "symbol": "دج",
+    "flag": "🇩🇿"
+  },
+  {
+    "countryCode": "DE",
+    "country": "Allemagne",
+    "prefix": "+49",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇩🇪"
+  },
+  {
+    "countryCode": "AO",
+    "country": "Angola",
+    "prefix": "+244",
+    "code": "AOA",
+    "symbol": "AOA",
+    "flag": "🇦🇴"
+  },
+  {
+    "countryCode": "AI",
+    "country": "Anguilla",
+    "prefix": "+1264",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇦🇮"
+  },
+  {
+    "countryCode": "AG",
+    "country": "Antigua-et-Barbuda",
+    "prefix": "+1268",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇦🇬"
+  },
+  {
+    "countryCode": "SA",
+    "country": "Arabie saoudite",
+    "prefix": "+966",
+    "code": "SAR",
+    "symbol": "ر.س",
+    "flag": "🇸🇦"
+  },
+  {
+    "countryCode": "AR",
+    "country": "Argentine",
+    "prefix": "+54",
+    "code": "ARS",
+    "symbol": "$AR",
+    "flag": "🇦🇷"
+  },
+  {
+    "countryCode": "AM",
+    "country": "Arménie",
+    "prefix": "+374",
+    "code": "AMD",
+    "symbol": "AMD",
+    "flag": "🇦🇲"
+  },
+  {
+    "countryCode": "AW",
+    "country": "Aruba",
+    "prefix": "+297",
+    "code": "AWG",
+    "symbol": "AWG",
+    "flag": "🇦🇼"
+  },
+  {
+    "countryCode": "AU",
+    "country": "Australie",
+    "prefix": "+61",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇦🇺"
+  },
+  {
+    "countryCode": "AT",
+    "country": "Autriche",
+    "prefix": "+43",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇦🇹"
+  },
+  {
+    "countryCode": "AZ",
+    "country": "Azerbaïdjan",
+    "prefix": "+994",
+    "code": "AZN",
+    "symbol": "AZN",
+    "flag": "🇦🇿"
+  },
+  {
+    "countryCode": "BS",
+    "country": "Bahamas",
+    "prefix": "+1242",
+    "code": "BSD",
+    "symbol": "BSD",
+    "flag": "🇧🇸"
+  },
+  {
+    "countryCode": "BH",
+    "country": "Bahreïn",
+    "prefix": "+973",
+    "code": "BHD",
+    "symbol": "BHD",
+    "flag": "🇧🇭"
+  },
+  {
+    "countryCode": "BD",
+    "country": "Bangladesh",
+    "prefix": "+880",
+    "code": "BDT",
+    "symbol": "BDT",
+    "flag": "🇧🇩"
+  },
+  {
+    "countryCode": "BB",
+    "country": "Barbade",
+    "prefix": "+1246",
+    "code": "BBD",
+    "symbol": "BBD",
+    "flag": "🇧🇧"
+  },
+  {
+    "countryCode": "BE",
+    "country": "Belgique",
+    "prefix": "+32",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇧🇪"
+  },
+  {
+    "countryCode": "BZ",
+    "country": "Belize",
+    "prefix": "+501",
+    "code": "BZD",
+    "symbol": "$BZ",
+    "flag": "🇧🇿"
+  },
+  {
+    "countryCode": "BM",
+    "country": "Bermudes",
+    "prefix": "+1441",
+    "code": "BMD",
+    "symbol": "$BM",
+    "flag": "🇧🇲"
+  },
+  {
+    "countryCode": "BT",
+    "country": "Bhoutan",
+    "prefix": "+975",
+    "code": "INR",
+    "symbol": "₹",
+    "flag": "🇧🇹"
+  },
+  {
+    "countryCode": "BY",
+    "country": "Biélorussie",
+    "prefix": "+375",
+    "code": "BYN",
+    "symbol": "BYN",
+    "flag": "🇧🇾"
+  },
+  {
+    "countryCode": "BO",
+    "country": "Bolivie",
+    "prefix": "+591",
+    "code": "BOB",
+    "symbol": "BOB",
+    "flag": "🇧🇴"
+  },
+  {
+    "countryCode": "BA",
+    "country": "Bosnie-Herzégovine",
+    "prefix": "+387",
+    "code": "BAM",
+    "symbol": "BAM",
+    "flag": "🇧🇦"
+  },
+  {
+    "countryCode": "BW",
+    "country": "Botswana",
+    "prefix": "+267",
+    "code": "BWP",
+    "symbol": "BWP",
+    "flag": "🇧🇼"
+  },
+  {
+    "countryCode": "BN",
+    "country": "Brunei",
+    "prefix": "+673",
+    "code": "BND",
+    "symbol": "$BN",
+    "flag": "🇧🇳"
+  },
+  {
+    "countryCode": "BR",
+    "country": "Brésil",
+    "prefix": "+55",
+    "code": "BRL",
+    "symbol": "R$",
+    "flag": "🇧🇷"
+  },
+  {
+    "countryCode": "BG",
+    "country": "Bulgarie",
+    "prefix": "+359",
+    "code": "BGN",
+    "symbol": "BGN",
+    "flag": "🇧🇬"
+  },
+  {
+    "countryCode": "BF",
+    "country": "Burkina Faso",
+    "prefix": "+226",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇧🇫"
+  },
+  {
+    "countryCode": "BI",
+    "country": "Burundi",
+    "prefix": "+257",
+    "code": "BIF",
+    "symbol": "FBu",
+    "flag": "🇧🇮"
+  },
+  {
+    "countryCode": "BJ",
+    "country": "Bénin",
+    "prefix": "+229",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇧🇯"
+  },
+  {
+    "countryCode": "KH",
+    "country": "Cambodge",
+    "prefix": "+855",
+    "code": "KHR",
+    "symbol": "KHR",
+    "flag": "🇰🇭"
+  },
+  {
+    "countryCode": "CM",
+    "country": "Cameroun",
+    "prefix": "+237",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇨🇲"
+  },
+  {
+    "countryCode": "CA",
+    "country": "Canada",
+    "prefix": "+1",
+    "code": "CAD",
+    "symbol": "$",
+    "flag": "🇨🇦"
+  },
+  {
+    "countryCode": "CV",
+    "country": "Cap-Vert",
+    "prefix": "+238",
+    "code": "CVE",
+    "symbol": "CVE",
+    "flag": "🇨🇻"
+  },
+  {
+    "countryCode": "CL",
+    "country": "Chili",
+    "prefix": "+56",
+    "code": "CLP",
+    "symbol": "$CL",
+    "flag": "🇨🇱"
+  },
+  {
+    "countryCode": "CN",
+    "country": "Chine",
+    "prefix": "+86",
+    "code": "CNY",
+    "symbol": "¥",
+    "flag": "🇨🇳"
+  },
+  {
+    "countryCode": "CY",
+    "country": "Chypre",
+    "prefix": "+357",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇨🇾"
+  },
+  {
+    "countryCode": "CO",
+    "country": "Colombie",
+    "prefix": "+57",
+    "code": "COP",
+    "symbol": "$CO",
+    "flag": "🇨🇴"
+  },
+  {
+    "countryCode": "KM",
+    "country": "Comores",
+    "prefix": "+269",
+    "code": "KMF",
+    "symbol": "KMF",
+    "flag": "🇰🇲"
+  },
+  {
+    "countryCode": "CG",
+    "country": "Congo-Brazzaville",
+    "prefix": "+242",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇨🇬"
+  },
+  {
+    "countryCode": "CD",
+    "country": "Congo-Kinshasa",
+    "prefix": "+243",
+    "code": "CDF",
+    "symbol": "FC",
+    "flag": "🇨🇩"
+  },
+  {
+    "countryCode": "KP",
+    "country": "Corée du Nord",
+    "prefix": "+850",
+    "code": "KPW",
+    "symbol": "KPW",
+    "flag": "🇰🇵"
+  },
+  {
+    "countryCode": "KR",
+    "country": "Corée du Sud",
+    "prefix": "+82",
+    "code": "KRW",
+    "symbol": "₩",
+    "flag": "🇰🇷"
+  },
+  {
+    "countryCode": "CR",
+    "country": "Costa Rica",
+    "prefix": "+506",
+    "code": "CRC",
+    "symbol": "CRC",
+    "flag": "🇨🇷"
+  },
+  {
+    "countryCode": "HR",
+    "country": "Croatie",
+    "prefix": "+385",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇭🇷"
+  },
+  {
+    "countryCode": "CU",
+    "country": "Cuba",
+    "prefix": "+53",
+    "code": "CUP",
+    "symbol": "CUP",
+    "flag": "🇨🇺"
+  },
+  {
+    "countryCode": "CI",
+    "country": "Côte d’Ivoire",
+    "prefix": "+225",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇨🇮"
+  },
+  {
+    "countryCode": "DK",
+    "country": "Danemark",
+    "prefix": "+45",
+    "code": "DKK",
+    "symbol": "kr",
+    "flag": "🇩🇰"
+  },
+  {
+    "countryCode": "DJ",
+    "country": "Djibouti",
+    "prefix": "+253",
+    "code": "DJF",
+    "symbol": "DJF",
+    "flag": "🇩🇯"
+  },
+  {
+    "countryCode": "DM",
+    "country": "Dominique",
+    "prefix": "+1767",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇩🇲"
+  },
+  {
+    "countryCode": "ES",
+    "country": "Espagne",
+    "prefix": "+34",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇪🇸"
+  },
+  {
+    "countryCode": "EE",
+    "country": "Estonie",
+    "prefix": "+372",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇪🇪"
+  },
+  {
+    "countryCode": "SZ",
+    "country": "Eswatini",
+    "prefix": "+268",
+    "code": "SZL",
+    "symbol": "SZL",
+    "flag": "🇸🇿"
+  },
+  {
+    "countryCode": "FJ",
+    "country": "Fidji",
+    "prefix": "+679",
+    "code": "FJD",
+    "symbol": "$FJ",
+    "flag": "🇫🇯"
+  },
+  {
+    "countryCode": "FI",
+    "country": "Finlande",
+    "prefix": "+358",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇫🇮"
+  },
+  {
+    "countryCode": "FR",
+    "country": "France",
+    "prefix": "+33",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇫🇷"
+  },
+  {
+    "countryCode": "GA",
+    "country": "Gabon",
+    "prefix": "+241",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇬🇦"
+  },
+  {
+    "countryCode": "GM",
+    "country": "Gambie",
+    "prefix": "+220",
+    "code": "GMD",
+    "symbol": "GMD",
+    "flag": "🇬🇲"
+  },
+  {
+    "countryCode": "GH",
+    "country": "Ghana",
+    "prefix": "+233",
+    "code": "GHS",
+    "symbol": "GH₵",
+    "flag": "🇬🇭"
+  },
+  {
+    "countryCode": "GI",
+    "country": "Gibraltar",
+    "prefix": "+350",
+    "code": "GIP",
+    "symbol": "£GI",
+    "flag": "🇬🇮"
+  },
+  {
+    "countryCode": "GD",
+    "country": "Grenade",
+    "prefix": "+1473",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇬🇩"
+  },
+  {
+    "countryCode": "GL",
+    "country": "Groenland",
+    "prefix": "+299",
+    "code": "DKK",
+    "symbol": "kr",
+    "flag": "🇬🇱"
+  },
+  {
+    "countryCode": "GR",
+    "country": "Grèce",
+    "prefix": "+30",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇬🇷"
+  },
+  {
+    "countryCode": "GP",
+    "country": "Guadeloupe",
+    "prefix": "+590",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇬🇵"
+  },
+  {
+    "countryCode": "GU",
+    "country": "Guam",
+    "prefix": "+1671",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇬🇺"
+  },
+  {
+    "countryCode": "GT",
+    "country": "Guatemala",
+    "prefix": "+502",
+    "code": "GTQ",
+    "symbol": "GTQ",
+    "flag": "🇬🇹"
+  },
+  {
+    "countryCode": "GG",
+    "country": "Guernesey",
+    "prefix": "+44",
+    "code": "GBP",
+    "symbol": "£",
+    "flag": "🇬🇬"
+  },
+  {
+    "countryCode": "GN",
+    "country": "Guinée",
+    "prefix": "+224",
+    "code": "GNF",
+    "symbol": "FG",
+    "flag": "🇬🇳"
+  },
+  {
+    "countryCode": "GQ",
+    "country": "Guinée équatoriale",
+    "prefix": "+240",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇬🇶"
+  },
+  {
+    "countryCode": "GW",
+    "country": "Guinée-Bissau",
+    "prefix": "+245",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇬🇼"
+  },
+  {
+    "countryCode": "GY",
+    "country": "Guyana",
+    "prefix": "+592",
+    "code": "GYD",
+    "symbol": "GYD",
+    "flag": "🇬🇾"
+  },
+  {
+    "countryCode": "GF",
+    "country": "Guyane française",
+    "prefix": "+594",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇬🇫"
+  },
+  {
+    "countryCode": "GE",
+    "country": "Géorgie",
+    "prefix": "+995",
+    "code": "GEL",
+    "symbol": "GEL",
+    "flag": "🇬🇪"
+  },
+  {
+    "countryCode": "GS",
+    "country": "Géorgie du Sud-et-les Îles Sandwich du Sud",
+    "prefix": "+500",
+    "code": "GBP",
+    "symbol": "£",
+    "flag": "🇬🇸"
+  },
+  {
+    "countryCode": "HT",
+    "country": "Haïti",
+    "prefix": "+509",
+    "code": "HTG",
+    "symbol": "HTG",
+    "flag": "🇭🇹"
+  },
+  {
+    "countryCode": "HN",
+    "country": "Honduras",
+    "prefix": "+504",
+    "code": "HNL",
+    "symbol": "HNL",
+    "flag": "🇭🇳"
+  },
+  {
+    "countryCode": "HU",
+    "country": "Hongrie",
+    "prefix": "+36",
+    "code": "HUF",
+    "symbol": "HUF",
+    "flag": "🇭🇺"
+  },
+  {
+    "countryCode": "IN",
+    "country": "Inde",
+    "prefix": "+91",
+    "code": "INR",
+    "symbol": "₹",
+    "flag": "🇮🇳"
+  },
+  {
+    "countryCode": "ID",
+    "country": "Indonésie",
+    "prefix": "+62",
+    "code": "IDR",
+    "symbol": "IDR",
+    "flag": "🇮🇩"
+  },
+  {
+    "countryCode": "IQ",
+    "country": "Irak",
+    "prefix": "+964",
+    "code": "IQD",
+    "symbol": "IQD",
+    "flag": "🇮🇶"
+  },
+  {
+    "countryCode": "IR",
+    "country": "Iran",
+    "prefix": "+98",
+    "code": "IRR",
+    "symbol": "IRR",
+    "flag": "🇮🇷"
+  },
+  {
+    "countryCode": "IE",
+    "country": "Irlande",
+    "prefix": "+353",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇮🇪"
+  },
+  {
+    "countryCode": "IS",
+    "country": "Islande",
+    "prefix": "+354",
+    "code": "ISK",
+    "symbol": "ISK",
+    "flag": "🇮🇸"
+  },
+  {
+    "countryCode": "IL",
+    "country": "Israël",
+    "prefix": "+972",
+    "code": "ILS",
+    "symbol": "₪",
+    "flag": "🇮🇱"
+  },
+  {
+    "countryCode": "IT",
+    "country": "Italie",
+    "prefix": "+39",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇮🇹"
+  },
+  {
+    "countryCode": "JM",
+    "country": "Jamaïque",
+    "prefix": "+1876",
+    "code": "JMD",
+    "symbol": "JMD",
+    "flag": "🇯🇲"
+  },
+  {
+    "countryCode": "JP",
+    "country": "Japon",
+    "prefix": "+81",
+    "code": "JPY",
+    "symbol": "¥",
+    "flag": "🇯🇵"
+  },
+  {
+    "countryCode": "JE",
+    "country": "Jersey",
+    "prefix": "+44",
+    "code": "GBP",
+    "symbol": "£",
+    "flag": "🇯🇪"
+  },
+  {
+    "countryCode": "JO",
+    "country": "Jordanie",
+    "prefix": "+962",
+    "code": "JOD",
+    "symbol": "JOD",
+    "flag": "🇯🇴"
+  },
+  {
+    "countryCode": "KZ",
+    "country": "Kazakhstan",
+    "prefix": "+76",
+    "code": "KZT",
+    "symbol": "KZT",
+    "flag": "🇰🇿"
+  },
+  {
+    "countryCode": "KE",
+    "country": "Kenya",
+    "prefix": "+254",
+    "code": "KES",
+    "symbol": "KSh",
+    "flag": "🇰🇪"
+  },
+  {
+    "countryCode": "KG",
+    "country": "Kirghizstan",
+    "prefix": "+996",
+    "code": "KGS",
+    "symbol": "KGS",
+    "flag": "🇰🇬"
+  },
+  {
+    "countryCode": "KI",
+    "country": "Kiribati",
+    "prefix": "+686",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇰🇮"
+  },
+  {
+    "countryCode": "KW",
+    "country": "Koweït",
+    "prefix": "+965",
+    "code": "KWD",
+    "symbol": "KWD",
+    "flag": "🇰🇼"
+  },
+  {
+    "countryCode": "RE",
+    "country": "La Réunion",
+    "prefix": "+262",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇷🇪"
+  },
+  {
+    "countryCode": "LA",
+    "country": "Laos",
+    "prefix": "+856",
+    "code": "LAK",
+    "symbol": "LAK",
+    "flag": "🇱🇦"
+  },
+  {
+    "countryCode": "LS",
+    "country": "Lesotho",
+    "prefix": "+266",
+    "code": "ZAR",
+    "symbol": "R",
+    "flag": "🇱🇸"
+  },
+  {
+    "countryCode": "LV",
+    "country": "Lettonie",
+    "prefix": "+371",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇱🇻"
+  },
+  {
+    "countryCode": "LB",
+    "country": "Liban",
+    "prefix": "+961",
+    "code": "LBP",
+    "symbol": "£LB",
+    "flag": "🇱🇧"
+  },
+  {
+    "countryCode": "LR",
+    "country": "Liberia",
+    "prefix": "+231",
+    "code": "LRD",
+    "symbol": "LRD",
+    "flag": "🇱🇷"
+  },
+  {
+    "countryCode": "LY",
+    "country": "Libye",
+    "prefix": "+218",
+    "code": "LYD",
+    "symbol": "LYD",
+    "flag": "🇱🇾"
+  },
+  {
+    "countryCode": "LI",
+    "country": "Liechtenstein",
+    "prefix": "+423",
+    "code": "CHF",
+    "symbol": "CHF",
+    "flag": "🇱🇮"
+  },
+  {
+    "countryCode": "LT",
+    "country": "Lituanie",
+    "prefix": "+370",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇱🇹"
+  },
+  {
+    "countryCode": "LU",
+    "country": "Luxembourg",
+    "prefix": "+352",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇱🇺"
+  },
+  {
+    "countryCode": "MK",
+    "country": "Macédoine du Nord",
+    "prefix": "+389",
+    "code": "MKD",
+    "symbol": "MKD",
+    "flag": "🇲🇰"
+  },
+  {
+    "countryCode": "MG",
+    "country": "Madagascar",
+    "prefix": "+261",
+    "code": "MGA",
+    "symbol": "MGA",
+    "flag": "🇲🇬"
+  },
+  {
+    "countryCode": "MY",
+    "country": "Malaisie",
+    "prefix": "+60",
+    "code": "MYR",
+    "symbol": "MYR",
+    "flag": "🇲🇾"
+  },
+  {
+    "countryCode": "MW",
+    "country": "Malawi",
+    "prefix": "+265",
+    "code": "MWK",
+    "symbol": "MWK",
+    "flag": "🇲🇼"
+  },
+  {
+    "countryCode": "MV",
+    "country": "Maldives",
+    "prefix": "+960",
+    "code": "MVR",
+    "symbol": "MVR",
+    "flag": "🇲🇻"
+  },
+  {
+    "countryCode": "ML",
+    "country": "Mali",
+    "prefix": "+223",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇲🇱"
+  },
+  {
+    "countryCode": "MT",
+    "country": "Malte",
+    "prefix": "+356",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇲🇹"
+  },
+  {
+    "countryCode": "MA",
+    "country": "Maroc",
+    "prefix": "+212",
+    "code": "MAD",
+    "symbol": "د.م.",
+    "flag": "🇲🇦"
+  },
+  {
+    "countryCode": "MQ",
+    "country": "Martinique",
+    "prefix": "+596",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇲🇶"
+  },
+  {
+    "countryCode": "MU",
+    "country": "Maurice",
+    "prefix": "+230",
+    "code": "MUR",
+    "symbol": "MUR",
+    "flag": "🇲🇺"
+  },
+  {
+    "countryCode": "MR",
+    "country": "Mauritanie",
+    "prefix": "+222",
+    "code": "MRU",
+    "symbol": "MRU",
+    "flag": "🇲🇷"
+  },
+  {
+    "countryCode": "YT",
+    "country": "Mayotte",
+    "prefix": "+262",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇾🇹"
+  },
+  {
+    "countryCode": "MX",
+    "country": "Mexique",
+    "prefix": "+52",
+    "code": "MXN",
+    "symbol": "$",
+    "flag": "🇲🇽"
+  },
+  {
+    "countryCode": "FM",
+    "country": "Micronésie",
+    "prefix": "+691",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇫🇲"
+  },
+  {
+    "countryCode": "MD",
+    "country": "Moldavie",
+    "prefix": "+373",
+    "code": "MDL",
+    "symbol": "MDL",
+    "flag": "🇲🇩"
+  },
+  {
+    "countryCode": "MC",
+    "country": "Monaco",
+    "prefix": "+377",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇲🇨"
+  },
+  {
+    "countryCode": "MN",
+    "country": "Mongolie",
+    "prefix": "+976",
+    "code": "MNT",
+    "symbol": "MNT",
+    "flag": "🇲🇳"
+  },
+  {
+    "countryCode": "MS",
+    "country": "Montserrat",
+    "prefix": "+1664",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇲🇸"
+  },
+  {
+    "countryCode": "MZ",
+    "country": "Mozambique",
+    "prefix": "+258",
+    "code": "MZN",
+    "symbol": "MT",
+    "flag": "🇲🇿"
+  },
+  {
+    "countryCode": "NA",
+    "country": "Namibie",
+    "prefix": "+264",
+    "code": "ZAR",
+    "symbol": "R",
+    "flag": "🇳🇦"
+  },
+  {
+    "countryCode": "NR",
+    "country": "Nauru",
+    "prefix": "+674",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇳🇷"
+  },
+  {
+    "countryCode": "NI",
+    "country": "Nicaragua",
+    "prefix": "+505",
+    "code": "NIO",
+    "symbol": "NIO",
+    "flag": "🇳🇮"
+  },
+  {
+    "countryCode": "NE",
+    "country": "Niger",
+    "prefix": "+227",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇳🇪"
+  },
+  {
+    "countryCode": "NG",
+    "country": "Nigeria",
+    "prefix": "+234",
+    "code": "NGN",
+    "symbol": "₦",
+    "flag": "🇳🇬"
+  },
+  {
+    "countryCode": "NU",
+    "country": "Niue",
+    "prefix": "+683",
+    "code": "NZD",
+    "symbol": "$",
+    "flag": "🇳🇺"
+  },
+  {
+    "countryCode": "NO",
+    "country": "Norvège",
+    "prefix": "+47",
+    "code": "NOK",
+    "symbol": "kr",
+    "flag": "🇳🇴"
+  },
+  {
+    "countryCode": "NC",
+    "country": "Nouvelle-Calédonie",
+    "prefix": "+687",
+    "code": "XPF",
+    "symbol": "FCFP",
+    "flag": "🇳🇨"
+  },
+  {
+    "countryCode": "NZ",
+    "country": "Nouvelle-Zélande",
+    "prefix": "+64",
+    "code": "NZD",
+    "symbol": "$",
+    "flag": "🇳🇿"
+  },
+  {
+    "countryCode": "NP",
+    "country": "Népal",
+    "prefix": "+977",
+    "code": "NPR",
+    "symbol": "NPR",
+    "flag": "🇳🇵"
+  },
+  {
+    "countryCode": "OM",
+    "country": "Oman",
+    "prefix": "+968",
+    "code": "OMR",
+    "symbol": "OMR",
+    "flag": "🇴🇲"
+  },
+  {
+    "countryCode": "UG",
+    "country": "Ouganda",
+    "prefix": "+256",
+    "code": "UGX",
+    "symbol": "USh",
+    "flag": "🇺🇬"
+  },
+  {
+    "countryCode": "UZ",
+    "country": "Ouzbékistan",
+    "prefix": "+998",
+    "code": "UZS",
+    "symbol": "UZS",
+    "flag": "🇺🇿"
+  },
+  {
+    "countryCode": "PK",
+    "country": "Pakistan",
+    "prefix": "+92",
+    "code": "PKR",
+    "symbol": "PKR",
+    "flag": "🇵🇰"
+  },
+  {
+    "countryCode": "PW",
+    "country": "Palaos",
+    "prefix": "+680",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇵🇼"
+  },
+  {
+    "countryCode": "PA",
+    "country": "Panama",
+    "prefix": "+507",
+    "code": "PAB",
+    "symbol": "PAB",
+    "flag": "🇵🇦"
+  },
+  {
+    "countryCode": "PG",
+    "country": "Papouasie-Nouvelle-Guinée",
+    "prefix": "+675",
+    "code": "PGK",
+    "symbol": "PGK",
+    "flag": "🇵🇬"
+  },
+  {
+    "countryCode": "PY",
+    "country": "Paraguay",
+    "prefix": "+595",
+    "code": "PYG",
+    "symbol": "PYG",
+    "flag": "🇵🇾"
+  },
+  {
+    "countryCode": "NL",
+    "country": "Pays-Bas",
+    "prefix": "+31",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇳🇱"
+  },
+  {
+    "countryCode": "PH",
+    "country": "Philippines",
+    "prefix": "+63",
+    "code": "PHP",
+    "symbol": "PHP",
+    "flag": "🇵🇭"
+  },
+  {
+    "countryCode": "PL",
+    "country": "Pologne",
+    "prefix": "+48",
+    "code": "PLN",
+    "symbol": "zł",
+    "flag": "🇵🇱"
+  },
+  {
+    "countryCode": "PF",
+    "country": "Polynésie française",
+    "prefix": "+689",
+    "code": "XPF",
+    "symbol": "FCFP",
+    "flag": "🇵🇫"
+  },
+  {
+    "countryCode": "PR",
+    "country": "Porto Rico",
+    "prefix": "+1787",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇵🇷"
+  },
+  {
+    "countryCode": "PT",
+    "country": "Portugal",
+    "prefix": "+351",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇵🇹"
+  },
+  {
+    "countryCode": "PE",
+    "country": "Pérou",
+    "prefix": "+51",
+    "code": "PEN",
+    "symbol": "PEN",
+    "flag": "🇵🇪"
+  },
+  {
+    "countryCode": "QA",
+    "country": "Qatar",
+    "prefix": "+974",
+    "code": "QAR",
+    "symbol": "QAR",
+    "flag": "🇶🇦"
+  },
+  {
+    "countryCode": "HK",
+    "country": "R.A.S. chinoise de Hong Kong",
+    "prefix": "+852",
+    "code": "HKD",
+    "symbol": "HKD",
+    "flag": "🇭🇰"
+  },
+  {
+    "countryCode": "MO",
+    "country": "R.A.S. chinoise de Macao",
+    "prefix": "+853",
+    "code": "MOP",
+    "symbol": "MOP",
+    "flag": "🇲🇴"
+  },
+  {
+    "countryCode": "RO",
+    "country": "Roumanie",
+    "prefix": "+40",
+    "code": "RON",
+    "symbol": "RON",
+    "flag": "🇷🇴"
+  },
+  {
+    "countryCode": "RU",
+    "country": "Russie",
+    "prefix": "+7",
+    "code": "RUB",
+    "symbol": "₽",
+    "flag": "🇷🇺"
+  },
+  {
+    "countryCode": "RW",
+    "country": "Rwanda",
+    "prefix": "+250",
+    "code": "RWF",
+    "symbol": "FRw",
+    "flag": "🇷🇼"
+  },
+  {
+    "countryCode": "CF",
+    "country": "République centrafricaine",
+    "prefix": "+236",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇨🇫"
+  },
+  {
+    "countryCode": "DO",
+    "country": "République dominicaine",
+    "prefix": "+1809",
+    "code": "DOP",
+    "symbol": "DOP",
+    "flag": "🇩🇴"
+  },
+  {
+    "countryCode": "EH",
+    "country": "Sahara occidental",
+    "prefix": "+212",
+    "code": "MAD",
+    "symbol": "د.م.",
+    "flag": "🇪🇭"
+  },
+  {
+    "countryCode": "KN",
+    "country": "Saint-Christophe-et-Niévès",
+    "prefix": "+1869",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇰🇳"
+  },
+  {
+    "countryCode": "SM",
+    "country": "Saint-Marin",
+    "prefix": "+378",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇸🇲"
+  },
+  {
+    "countryCode": "PM",
+    "country": "Saint-Pierre-et-Miquelon",
+    "prefix": "+508",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇵🇲"
+  },
+  {
+    "countryCode": "VC",
+    "country": "Saint-Vincent-et-les Grenadines",
+    "prefix": "+1784",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇻🇨"
+  },
+  {
+    "countryCode": "SH",
+    "country": "Sainte-Hélène",
+    "prefix": "+290",
+    "code": "SHP",
+    "symbol": "SHP",
+    "flag": "🇸🇭"
+  },
+  {
+    "countryCode": "LC",
+    "country": "Sainte-Lucie",
+    "prefix": "+1758",
+    "code": "XCD",
+    "symbol": "XCD",
+    "flag": "🇱🇨"
+  },
+  {
+    "countryCode": "SV",
+    "country": "Salvador",
+    "prefix": "+503",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇸🇻"
+  },
+  {
+    "countryCode": "WS",
+    "country": "Samoa",
+    "prefix": "+685",
+    "code": "WST",
+    "symbol": "$WS",
+    "flag": "🇼🇸"
+  },
+  {
+    "countryCode": "AS",
+    "country": "Samoa américaines",
+    "prefix": "+1684",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇦🇸"
+  },
+  {
+    "countryCode": "ST",
+    "country": "Sao Tomé-et-Principe",
+    "prefix": "+239",
+    "code": "STN",
+    "symbol": "STN",
+    "flag": "🇸🇹"
+  },
+  {
+    "countryCode": "RS",
+    "country": "Serbie",
+    "prefix": "+381",
+    "code": "RSD",
+    "symbol": "RSD",
+    "flag": "🇷🇸"
+  },
+  {
+    "countryCode": "SC",
+    "country": "Seychelles",
+    "prefix": "+248",
+    "code": "SCR",
+    "symbol": "SCR",
+    "flag": "🇸🇨"
+  },
+  {
+    "countryCode": "SL",
+    "country": "Sierra Leone",
+    "prefix": "+232",
+    "code": "SLE",
+    "symbol": "SLE",
+    "flag": "🇸🇱"
+  },
+  {
+    "countryCode": "SG",
+    "country": "Singapour",
+    "prefix": "+65",
+    "code": "SGD",
+    "symbol": "$SG",
+    "flag": "🇸🇬"
+  },
+  {
+    "countryCode": "SK",
+    "country": "Slovaquie",
+    "prefix": "+421",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇸🇰"
+  },
+  {
+    "countryCode": "SI",
+    "country": "Slovénie",
+    "prefix": "+386",
+    "code": "EUR",
+    "symbol": "€",
+    "flag": "🇸🇮"
+  },
+  {
+    "countryCode": "SO",
+    "country": "Somalie",
+    "prefix": "+252",
+    "code": "SOS",
+    "symbol": "SOS",
+    "flag": "🇸🇴"
+  },
+  {
+    "countryCode": "SD",
+    "country": "Soudan",
+    "prefix": "+249",
+    "code": "SDG",
+    "symbol": "SDG",
+    "flag": "🇸🇩"
+  },
+  {
+    "countryCode": "SS",
+    "country": "Soudan du Sud",
+    "prefix": "+211",
+    "code": "SSP",
+    "symbol": "SSP",
+    "flag": "🇸🇸"
+  },
+  {
+    "countryCode": "LK",
+    "country": "Sri Lanka",
+    "prefix": "+94",
+    "code": "LKR",
+    "symbol": "LKR",
+    "flag": "🇱🇰"
+  },
+  {
+    "countryCode": "CH",
+    "country": "Suisse",
+    "prefix": "+41",
+    "code": "CHF",
+    "symbol": "CHF",
+    "flag": "🇨🇭"
+  },
+  {
+    "countryCode": "SR",
+    "country": "Suriname",
+    "prefix": "+597",
+    "code": "SRD",
+    "symbol": "$SR",
+    "flag": "🇸🇷"
+  },
+  {
+    "countryCode": "SE",
+    "country": "Suède",
+    "prefix": "+46",
+    "code": "SEK",
+    "symbol": "kr",
+    "flag": "🇸🇪"
+  },
+  {
+    "countryCode": "SJ",
+    "country": "Svalbard et Jan Mayen",
+    "prefix": "+4779",
+    "code": "NOK",
+    "symbol": "kr",
+    "flag": "🇸🇯"
+  },
+  {
+    "countryCode": "SY",
+    "country": "Syrie",
+    "prefix": "+963",
+    "code": "SYP",
+    "symbol": "SYP",
+    "flag": "🇸🇾"
+  },
+  {
+    "countryCode": "SN",
+    "country": "Sénégal",
+    "prefix": "+221",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇸🇳"
+  },
+  {
+    "countryCode": "TJ",
+    "country": "Tadjikistan",
+    "prefix": "+992",
+    "code": "TJS",
+    "symbol": "TJS",
+    "flag": "🇹🇯"
+  },
+  {
+    "countryCode": "TZ",
+    "country": "Tanzanie",
+    "prefix": "+255",
+    "code": "TZS",
+    "symbol": "TSh",
+    "flag": "🇹🇿"
+  },
+  {
+    "countryCode": "TW",
+    "country": "Taïwan",
+    "prefix": "+886",
+    "code": "TWD",
+    "symbol": "TWD",
+    "flag": "🇹🇼"
+  },
+  {
+    "countryCode": "TD",
+    "country": "Tchad",
+    "prefix": "+235",
+    "code": "XAF",
+    "symbol": "FCFA",
+    "flag": "🇹🇩"
+  },
+  {
+    "countryCode": "CZ",
+    "country": "Tchéquie",
+    "prefix": "+420",
+    "code": "CZK",
+    "symbol": "CZK",
+    "flag": "🇨🇿"
+  },
+  {
+    "countryCode": "IO",
+    "country": "Territoire britannique de l’océan Indien",
+    "prefix": "+246",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇮🇴"
+  },
+  {
+    "countryCode": "TH",
+    "country": "Thaïlande",
+    "prefix": "+66",
+    "code": "THB",
+    "symbol": "THB",
+    "flag": "🇹🇭"
+  },
+  {
+    "countryCode": "TL",
+    "country": "Timor oriental",
+    "prefix": "+670",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇹🇱"
+  },
+  {
+    "countryCode": "TG",
+    "country": "Togo",
+    "prefix": "+228",
+    "code": "XOF",
+    "symbol": "FCFA",
+    "flag": "🇹🇬"
+  },
+  {
+    "countryCode": "TK",
+    "country": "Tokelau",
+    "prefix": "+690",
+    "code": "NZD",
+    "symbol": "$",
+    "flag": "🇹🇰"
+  },
+  {
+    "countryCode": "TO",
+    "country": "Tonga",
+    "prefix": "+676",
+    "code": "TOP",
+    "symbol": "TOP",
+    "flag": "🇹🇴"
+  },
+  {
+    "countryCode": "TT",
+    "country": "Trinité-et-Tobago",
+    "prefix": "+1868",
+    "code": "TTD",
+    "symbol": "$TT",
+    "flag": "🇹🇹"
+  },
+  {
+    "countryCode": "TN",
+    "country": "Tunisie",
+    "prefix": "+216",
+    "code": "TND",
+    "symbol": "د.ت",
+    "flag": "🇹🇳"
+  },
+  {
+    "countryCode": "TM",
+    "country": "Turkménistan",
+    "prefix": "+993",
+    "code": "TMT",
+    "symbol": "TMT",
+    "flag": "🇹🇲"
+  },
+  {
+    "countryCode": "TR",
+    "country": "Turquie",
+    "prefix": "+90",
+    "code": "TRY",
+    "symbol": "₺",
+    "flag": "🇹🇷"
+  },
+  {
+    "countryCode": "TV",
+    "country": "Tuvalu",
+    "prefix": "+688",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇹🇻"
+  },
+  {
+    "countryCode": "UA",
+    "country": "Ukraine",
+    "prefix": "+380",
+    "code": "UAH",
+    "symbol": "UAH",
+    "flag": "🇺🇦"
+  },
+  {
+    "countryCode": "UY",
+    "country": "Uruguay",
+    "prefix": "+598",
+    "code": "UYU",
+    "symbol": "$UY",
+    "flag": "🇺🇾"
+  },
+  {
+    "countryCode": "VU",
+    "country": "Vanuatu",
+    "prefix": "+678",
+    "code": "VUV",
+    "symbol": "VUV",
+    "flag": "🇻🇺"
+  },
+  {
+    "countryCode": "VE",
+    "country": "Venezuela",
+    "prefix": "+58",
+    "code": "VES",
+    "symbol": "VES",
+    "flag": "🇻🇪"
+  },
+  {
+    "countryCode": "VN",
+    "country": "Viêt Nam",
+    "prefix": "+84",
+    "code": "VND",
+    "symbol": "₫",
+    "flag": "🇻🇳"
+  },
+  {
+    "countryCode": "WF",
+    "country": "Wallis-et-Futuna",
+    "prefix": "+681",
+    "code": "XPF",
+    "symbol": "FCFP",
+    "flag": "🇼🇫"
+  },
+  {
+    "countryCode": "YE",
+    "country": "Yémen",
+    "prefix": "+967",
+    "code": "YER",
+    "symbol": "YER",
+    "flag": "🇾🇪"
+  },
+  {
+    "countryCode": "ZM",
+    "country": "Zambie",
+    "prefix": "+260",
+    "code": "ZMW",
+    "symbol": "ZK",
+    "flag": "🇿🇲"
+  },
+  {
+    "countryCode": "ZW",
+    "country": "Zimbabwe",
+    "prefix": "+263",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇿🇼"
+  },
+  {
+    "countryCode": "EG",
+    "country": "Égypte",
+    "prefix": "+20",
+    "code": "EGP",
+    "symbol": "ج.م",
+    "flag": "🇪🇬"
+  },
+  {
+    "countryCode": "AE",
+    "country": "Émirats arabes unis",
+    "prefix": "+971",
+    "code": "AED",
+    "symbol": "د.إ",
+    "flag": "🇦🇪"
+  },
+  {
+    "countryCode": "EC",
+    "country": "Équateur",
+    "prefix": "+593",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇪🇨"
+  },
+  {
+    "countryCode": "ER",
+    "country": "Érythrée",
+    "prefix": "+291",
+    "code": "ERN",
+    "symbol": "ERN",
+    "flag": "🇪🇷"
+  },
+  {
+    "countryCode": "US",
+    "country": "États-Unis",
+    "prefix": "+1",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇺🇸"
+  },
+  {
+    "countryCode": "ET",
+    "country": "Éthiopie",
+    "prefix": "+251",
+    "code": "ETB",
+    "symbol": "Br",
+    "flag": "🇪🇹"
+  },
+  {
+    "countryCode": "CX",
+    "country": "Île Christmas",
+    "prefix": "+61",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇨🇽"
+  },
+  {
+    "countryCode": "IM",
+    "country": "Île de Man",
+    "prefix": "+44",
+    "code": "GBP",
+    "symbol": "£",
+    "flag": "🇮🇲"
+  },
+  {
+    "countryCode": "NF",
+    "country": "Île Norfolk",
+    "prefix": "+672",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇳🇫"
+  },
+  {
+    "countryCode": "KY",
+    "country": "Îles Caïmans",
+    "prefix": "+1345",
+    "code": "KYD",
+    "symbol": "KYD",
+    "flag": "🇰🇾"
+  },
+  {
+    "countryCode": "CC",
+    "country": "Îles Cocos",
+    "prefix": "+61",
+    "code": "AUD",
+    "symbol": "$",
+    "flag": "🇨🇨"
+  },
+  {
+    "countryCode": "CK",
+    "country": "Îles Cook",
+    "prefix": "+682",
+    "code": "NZD",
+    "symbol": "$",
+    "flag": "🇨🇰"
+  },
+  {
+    "countryCode": "FO",
+    "country": "Îles Féroé",
+    "prefix": "+298",
+    "code": "DKK",
+    "symbol": "kr",
+    "flag": "🇫🇴"
+  },
+  {
+    "countryCode": "FK",
+    "country": "Îles Malouines",
+    "prefix": "+500",
+    "code": "FKP",
+    "symbol": "£FK",
+    "flag": "🇫🇰"
+  },
+  {
+    "countryCode": "MP",
+    "country": "Îles Mariannes du Nord",
+    "prefix": "+1670",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇲🇵"
+  },
+  {
+    "countryCode": "MH",
+    "country": "Îles Marshall",
+    "prefix": "+692",
+    "code": "USD",
+    "symbol": "$",
+    "flag": "🇲🇭"
+  },
+  {
+    "countryCode": "PN",
+    "country": "Îles Pitcairn",
+    "prefix": "+64",
+    "code": "NZD",
+    "symbol": "$",
+    "flag": "🇵🇳"
+  },
+  {
+    "countryCode": "SB",
+    "country": "Îles Salomon",
+    "prefix": "+677",
+    "code": "SBD",
+    "symbol": "$SB",
+    "flag": "🇸🇧"
+  }
+];
+
+const firebaseConfig = {
+   apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+   authDomain: "securite-53ada.firebaseapp.com",
+   databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",       
+   projectId: "securite-53ada",
+   storageBucket: "securite-53ada.firebasestorage.app"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+const video =
+document.getElementById("bgVideo");
+const image =
+document.getElementById("bgImage");
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+let maliMedia = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97"
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4"
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+switchMedia();
+
+function switchMedia(){
+if(!maliMedia.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = maliMedia[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+
+const duration =
+ad.duration || video.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+};
+
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+ad.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+/* 🔥 FIREBASE SYNC ADS */
+onValue(ref(db,"ads"), snap => {
+console.log("ADS =", snap.val());
+
+const data = snap.val();
+
+if(!data) return;
+
+maliMedia = Object.values(data);
+restartSlider();
+});
+
+const currencyList =
+document.getElementById("currencyList");
+const currencyBox =
+document.getElementById("currencyBox");
+
+const searchCurrency =
+document.getElementById("searchCurrency");
+
+let allCurrencies = {};
+
+/*
+=====================================================
+🚫 PAYS DÉSACTIVÉS PAR L’ADMINISTRATEUR
+
+Lorsqu’un pays est supprimé manuellement,
+il ne doit pas être recréé automatiquement
+au prochain chargement de currencies.html.
+=====================================================
+*/
+
+let disabledCurrencies = {};
+
+let resolveInitialDisabledCurrencies;
+
+const initialDisabledCurrenciesPromise =
+  new Promise(resolve => {
+    resolveInitialDisabledCurrencies =
+      resolve;
+  });
+
+let initialDisabledCurrenciesReceived =
+  false;
+
+onValue(
+  ref(
+    db,
+    "disabledCurrencies"
+  ),
+  snapshot => {
+    disabledCurrencies =
+      snapshot.val() ||
+      {};
+
+    if(
+      !initialDisabledCurrenciesReceived
+    ){
+      initialDisabledCurrenciesReceived =
+        true;
+
+      resolveInitialDisabledCurrencies();
+    }
+  }
+);
+
+/* =========================
+👁 OUVRIR / FERMER LISTE
+========================= */
+window.toggleCurrencyList = function(){
+currencyBox.classList.toggle("hidden");
+};
+
+/* =========================
+🧮 FORMAT INTELLIGENT FCFA
+========================= */
+
+function formatXOF(value){
+  const numericValue =
+    Number(value);
+
+  if(
+    !Number.isFinite(numericValue)
+  ){
+    return "Indisponible";
+  }
+
+  const absoluteValue =
+    Math.abs(numericValue);
+
+  let maximumFractionDigits;
+
+  /*
+  Les taux importants nécessitent peu
+  de décimales visibles.
+
+  Les petites devises conservent davantage
+  de décimales pour ne jamais afficher zéro.
+  */
+  if(absoluteValue >= 100){
+    maximumFractionDigits = 3;
+
+  }else if(absoluteValue >= 1){
+    maximumFractionDigits = 4;
+
+  }else if(absoluteValue >= 0.01){
+    maximumFractionDigits = 6;
+
+  }else{
+    maximumFractionDigits = 8;
+  }
+
+  return numericValue.toLocaleString(
+    "fr-FR",
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits
+    }
+  ) + " FCFA";
+}
+
+/* =========================
+➕ AJOUTER DEVISE
+========================= */
+
+const countriesData = {
+
+"+223":{
+code:"XOF",
+country:"Mali",
+flag:"🇲🇱",
+symbol:"FCFA"
+},
+
+"+33":{
+code:"EUR",
+country:"France",
+flag:"🇫🇷",
+symbol:"€"
+},
+
+"+1515":{
+code:"USD",
+country:"États-Unis",
+flag:"🇺🇸",
+symbol:"$"
+},
+
+"+1514":{
+code:"CAD",
+country:"Canada",
+flag:"🇨🇦",
+symbol:"$"
+},
+
+"+86":{
+code:"CNY",
+country:"Chine",
+flag:"🇨🇳",
+symbol:"¥"
+},
+
+"+226":{
+code:"XOF",
+country:"Burkina Faso",
+flag:"🇧🇫",
+symbol:"FCFA"
+},
+
+"+227":{
+code:"XOF",
+country:"Niger",
+flag:"🇳🇪",
+symbol:"FCFA"
+}
+
+};
+
+/* =====================================================
+   🌍 SYNCHRONISATION AUTOMATIQUE DES PAYS
+
+   Cette synchronisation :
+   - conserve les anciennes entrées Firebase ;
+   - ne supprime jamais une devise existante ;
+   - met à jour les taux ;
+   - ajoute les pays manquants ;
+   - conserve les champs utilisés par les autres pages.
+===================================================== */
+
+let maliPayAutomaticCurrencySyncRunning =
+  false;
+
+function normalizeCountryComparisonName(
+  value
+){
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    );
+}
+
+function isCurrencyCountryDisabled(
+  countryData
+){
+  const countryCode =
+    String(
+      countryData?.countryCode ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if(!countryCode){
+    return false;
+  }
+
+  return Boolean(
+    disabledCurrencies[
+      countryCode
+    ]
+  );
+}
+
+function createAutomaticCurrencyKey(
+  countryData,
+  occupiedKeys
+){
+  const basicKey =
+    String(
+      countryData.prefix || ""
+    ).trim();
+
+  if(
+    basicKey &&
+    !occupiedKeys.has(basicKey)
+  ){
+    return basicKey;
+  }
+
+  /*
+  Certains pays partagent un indicatif,
+  notamment +1 ou +7.
+
+  Dans ce cas, le code du pays évite
+  d’écraser une autre entrée.
+  */
+  return (
+    basicKey +
+    "_" +
+    countryData.countryCode
+  );
+}
+
+/* =====================================================
+   ⚡ COMPARAISON INTELLIGENTE DES DEVISES
+
+   Ces fonctions déterminent si une donnée Firebase
+   doit réellement être ajoutée ou mise à jour.
+===================================================== */
+
+function areCurrencyRatesEquivalent(
+  firstRate,
+  secondRate
+){
+  const firstValue =
+    Number(firstRate);
+
+  const secondValue =
+    Number(secondRate);
+
+  if(
+    !Number.isFinite(firstValue) ||
+    !Number.isFinite(secondValue)
+  ){
+    return false;
+  }
+
+  const difference =
+    Math.abs(
+      firstValue -
+      secondValue
+    );
+
+  /*
+  Tolérance très faible destinée seulement
+  aux petites différences de calcul JavaScript.
+
+  Elle ne masque pas un véritable changement
+  du taux de change.
+  */
+  const tolerance =
+    Math.max(
+      0.000000000001,
+      Math.abs(secondValue) *
+      0.0000000001
+    );
+
+  return difference <= tolerance;
+}
+
+function normalizeCurrencyField(
+  value
+){
+  return String(
+    value ?? ""
+  ).trim();
+}
+
+function currencyRecordNeedsUpdate(
+  previousData,
+  nextData
+){
+  if(
+    !previousData ||
+    typeof previousData !== "object"
+  ){
+    return true;
+  }
+
+  /*
+  Comparaison des informations utilisées
+  par currencies.html et les autres pages.
+  */
+  const textFields = [
+    "prefix",
+    "code",
+    "country",
+    "countryCode",
+    "flag",
+    "symbol",
+    "rateSource"
+  ];
+
+  const textFieldChanged =
+    textFields.some(field =>
+      normalizeCurrencyField(
+        previousData[field]
+      ) !==
+      normalizeCurrencyField(
+        nextData[field]
+      )
+    );
+
+  if(textFieldChanged){
+    return true;
+  }
+
+  if(
+    Boolean(previousData.automatic) !==
+    Boolean(nextData.automatic)
+  ){
+    return true;
+  }
+
+  if(
+    !areCurrencyRatesEquivalent(
+      previousData.rateToXOF,
+      nextData.rateToXOF
+    )
+  ){
+    return true;
+  }
+
+  return false;
+}
+
+async function synchronizeAutomaticCurrencies(){
+  if(maliPayAutomaticCurrencySyncRunning){
+    return;
+  }
+
+  maliPayAutomaticCurrencySyncRunning =
+    true;
+
+  const status =
+    document.getElementById(
+      "currencySyncStatus"
+    );
+
+  try{
+    if(status){
+      status.innerHTML =
+        "⏳ Ajout et mise à jour automatiques des pays...";
+    }
+
+    const existingEntries =
+      Object.entries(
+        allCurrencies || {}
+      );
+
+    const occupiedKeys =
+      new Set(
+        existingEntries.map(
+          ([firebaseKey]) =>
+            firebaseKey
+        )
+      );
+
+    const existingByCountryCode =
+      new Map();
+
+    const existingByCountryName =
+      new Map();
+
+    existingEntries.forEach(
+      ([firebaseKey, currency])=>{
+        const countryCode =
+          String(
+            currency?.countryCode ||
+            ""
+          )
+            .trim()
+            .toUpperCase();
+
+        if(countryCode){
+          existingByCountryCode.set(
+            countryCode,
+            {
+              firebaseKey,
+              currency
+            }
+          );
+        }
+
+        const normalizedCountryName =
+          normalizeCountryComparisonName(
+            currency?.country
+          );
+
+        if(normalizedCountryName){
+          existingByCountryName.set(
+            normalizedCountryName,
+            {
+              firebaseKey,
+              currency
+            }
+          );
+        }
+      }
+    );
+
+    const firebaseUpdates = {};
+
+    let supportedCountries =
+  0;
+
+let ignoredCountries =
+  0;
+
+/*
+Compteurs de la synchronisation intelligente.
+*/
+let addedCountries =
+  0;
+
+let updatedCountries =
+  0;
+
+let unchangedCountries =
+  0;
+
+MALIPAY_COUNTRY_CATALOG
+  .forEach(countryData => {
+
+    /*
+    Un pays supprimé volontairement
+    par l’administrateur ne doit jamais
+    être recréé automatiquement.
+    */
+    if(
+      isCurrencyCountryDisabled(
+        countryData
+      )
+    ){
+      ignoredCountries += 1;
+
+      return;
+    }
+
+    /*
+    Récupérer le taux complet de la devise
+    du pays vers le FCFA.
+    */
+    const rateToXOF =
+      getRateToXOF(
+        countryData.code
+      );
+
+    /*
+    Si ExchangeRate-API ne fournit pas
+    cette devise, le pays est ignoré.
+    */
+    if(rateToXOF === null){
+      ignoredCountries += 1;
+
+      return;
+    }
+
+        supportedCountries += 1;
+
+        const normalizedCountryName =
+          normalizeCountryComparisonName(
+            countryData.country
+          );
+
+        const existingMatch =
+          existingByCountryCode.get(
+            countryData.countryCode
+          ) ||
+          existingByCountryName.get(
+            normalizedCountryName
+          );
+
+        let firebaseKey;
+
+        let previousData = {};
+
+        if(existingMatch){
+          firebaseKey =
+            existingMatch.firebaseKey;
+
+          previousData =
+            existingMatch.currency ||
+            {};
+
+        }else{
+          firebaseKey =
+            createAutomaticCurrencyKey(
+              countryData,
+              occupiedKeys
+            );
+
+          occupiedKeys.add(
+            firebaseKey
+          );
+        }
+
+        /*
+        Les anciens champs restent présents.
+
+        Un préfixe déjà personnalisé dans Firebase
+        est conservé. Exemple : +1514 pour Canada.
+        */
+        /*
+Déterminer si le taux a réellement changé.
+
+Pour une nouvelle entrée, le taux est naturellement
+considéré comme nouveau.
+*/
+const rateChanged =
+  !existingMatch ||
+  !areCurrencyRatesEquivalent(
+    previousData.rateToXOF,
+    rateToXOF
+  );
+
+const currentRateUpdatedAt =
+  maliPayRateMetadata
+    .lastUpdateAt ||
+  Date.now();
+
+const currentRateNextUpdateAt =
+  maliPayRateMetadata
+    .nextUpdateAt ||
+  0;
+
+/*
+Construire la prochaine version de la devise.
+
+Les champs historiques restent entièrement
+compatibles avec dashboard.html et les autres pages.
+*/
+const nextCurrencyData = {
+  ...previousData,
+
+  prefix:
+    previousData.prefix ||
+    countryData.prefix,
+
+  code:
+    countryData.code,
+
+  country:
+    countryData.country,
+
+  countryCode:
+    countryData.countryCode,
+
+  flag:
+    previousData.flag ||
+    countryData.flag,
+
+  symbol:
+    previousData.symbol ||
+    countryData.symbol ||
+    countryData.code,
+
+  rateToXOF,
+
+  /*
+  La date du taux ne change que lorsque le taux
+  change réellement ou lorsque le pays est nouveau.
+  */
+  rateUpdatedAt:
+    rateChanged
+      ? currentRateUpdatedAt
+      : (
+          Number(
+            previousData.rateUpdatedAt ||
+            0
+          ) ||
+          currentRateUpdatedAt
+        ),
+
+  rateNextUpdateAt:
+    rateChanged
+      ? currentRateNextUpdateAt
+      : Number(
+          previousData.rateNextUpdateAt ||
+          0
+        ),
+
+  rateSource:
+    maliPayRateMetadata
+      .source ||
+    previousData.rateSource ||
+    "ExchangeRate-API",
+
+  automatic:
+    true
+};
+
+/*
+Nouvelle entrée Firebase.
+*/
+if(!existingMatch){
+  addedCountries += 1;
+
+  firebaseUpdates[
+    "currencies/" +
+    firebaseKey
+  ] =
+    nextCurrencyData;
+
+  return;
+}
+
+/*
+Entrée existante réellement différente.
+*/
+if(
+  currencyRecordNeedsUpdate(
+    previousData,
+    nextCurrencyData
+  )
+){
+  updatedCountries += 1;
+
+  firebaseUpdates[
+    "currencies/" +
+    firebaseKey
+  ] =
+    nextCurrencyData;
+
+  return;
+}
+
+/*
+Aucun changement :
+
+ne rien envoyer à Firebase.
+*/
+unchangedCountries += 1;
+      });
+
+    if(
+      Object.keys(
+        firebaseUpdates
+      ).length > 0
+    ){
+      /*
+      Une seule écriture Firebase pour tous
+      les pays, au lieu de centaines d’écritures.
+      */
+      await update(
+        ref(db),
+        firebaseUpdates
+      );
+    }
+
+    if(status){
+  status.innerHTML = `
+    ✅ Synchronisation terminée :
+    <strong>${supportedCountries}</strong>
+    pays ou territoires disponibles.
+
+    <br>
+    ➕ <strong>${addedCountries}</strong>
+    ajouté(s)
+
+    — 🔄 <strong>${updatedCountries}</strong>
+    mis à jour
+
+    — ⚡ <strong>${unchangedCountries}</strong>
+    déjà à jour.
+
+    ${
+      ignoredCountries > 0
+        ? `
+          <br>
+          ⚠️ ${ignoredCountries}
+          entrée(s) ignorée(s), car leur devise
+          n’est pas couverte ou le pays est désactivé.
+        `
+        : ""
+    }
+  `;
+
+  status.style.color =
+    "#16803c";
+}
+
+    console.log(
+  "✅ Catalogue mondial MaliPay synchronisé :",
+  {
+    supportedCountries,
+    ignoredCountries,
+    addedCountries,
+    updatedCountries,
+    unchangedCountries,
+
+    firebaseWrites:
+      Object.keys(
+        firebaseUpdates
+      ).length
+  }
+);
+
+  }catch(error){
+    console.error(
+      "Erreur synchronisation automatique des devises :",
+      error
+    );
+
+    if(status){
+      status.innerHTML =
+        "❌ Synchronisation automatique impossible : " +
+        error.message;
+
+      status.style.color =
+        "crimson";
+    }
+
+  }finally{
+    maliPayAutomaticCurrencySyncRunning =
+      false;
+  }
+}
+
+window.addCurrency = async function(){
+
+const prefix =
+document.getElementById("prefix")
+.value.trim();
+
+const code =
+document.getElementById("code")
+.value.trim()
+.toUpperCase();
+
+const country =
+document.getElementById("country")
+.value.trim();
+
+const flag =
+document.getElementById("flag")
+.value.trim();
+
+const symbol =
+document.getElementById("symbol")
+.value.trim();
+
+if(
+!prefix ||
+!code ||
+!country ||
+!flag ||
+!symbol
+){
+
+alert("❌ Remplis tous les champs");
+
+return;
+}
+
+const matchingCatalogCountry =
+  MALIPAY_COUNTRY_CATALOG.find(
+    item =>
+      item.prefix === prefix ||
+      normalizeCountryComparisonName(
+        item.country
+      ) ===
+      normalizeCountryComparisonName(
+        country
+      )
+  );
+
+const matchingCountryCode =
+  String(
+    matchingCatalogCountry
+      ?.countryCode ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
+
+/* 🔥 sauvegarde Firebase */
+
+const currentRateToXOF =
+  getRateToXOF(code);
+
+if(currentRateToXOF === null){
+  alert(
+    "❌ Cette devise n’est pas couverte par le fournisseur de taux actuel."
+  );
+
+  return;
+}
+
+await set(
+  ref(
+    db,
+    "currencies/" +
+    prefix
+  ),
+  {
+    prefix,
+    code,
+    country,
+    flag,
+    symbol,
+
+    rateToXOF:
+      currentRateToXOF,
+
+    rateUpdatedAt:
+      maliPayRateMetadata
+        .lastUpdateAt ||
+      Date.now(),
+
+    rateNextUpdateAt:
+      maliPayRateMetadata
+        .nextUpdateAt ||
+      0,
+
+    rateSource:
+      maliPayRateMetadata
+        .source,
+
+    automatic:
+      false
+  }
+);
+
+if(matchingCountryCode){
+  await remove(
+    ref(
+      db,
+      "disabledCurrencies/" +
+      matchingCountryCode
+    )
+  );
+}
+
+alert("✅ Devise ajoutée");
+
+/* reset */
+
+document.getElementById("code").value="";
+document.getElementById("symbol").value="";
+document.getElementById("prefix").value="";
+document.getElementById("country").value="";
+document.getElementById("flag").value="";
+};
+
+/* =====================================================
+   🌍 MOTEUR GLOBAL DES TAUX MALIPAY
+
+   Une seule requête charge tous les taux avec XOF
+   comme devise de base.
+
+   L’API répond par exemple :
+   1 XOF = plusieurs unités de NGN.
+
+   Pour obtenir :
+   1 NGN = combien de XOF
+
+   on calcule :
+   1 / taux reçu.
+===================================================== */
+
+const MALIPAY_RATE_API_URL =
+  "https://open.er-api.com/v6/latest/XOF";
+
+const MALIPAY_RATE_CACHE_KEY =
+  "malipayExchangeRatesXOFV2";
+
+const MALIPAY_RATE_FALLBACK_TTL =
+  24 * 60 * 60 * 1000;
+
+let maliPayRatesToXOF = {
+  XOF: 1
+};
+
+let maliPayRateMetadata = {
+  source:
+    "ExchangeRate-API",
+
+  lastUpdateAt:
+    0,
+
+  nextUpdateAt:
+    0
+};
+
+let maliPayRatesLoadingPromise =
+  null;
+
+/*
+=====================================================
+🛡️ VALIDATION ET SECOURS FIREBASE DES TAUX
+
+Les taux sont conservés sous cette forme :
+
+1 unité de devise = combien de XOF.
+
+Exemple :
+EUR : 655.957
+NGN : 0.38...
+=====================================================
+*/
+
+const MALIPAY_RATE_SCHEMA_VERSION =
+  2;
+
+function normalizeStoredRatesToXOF(
+  rawRates
+){
+  if(
+    !rawRates ||
+    typeof rawRates !== "object"
+  ){
+    return {
+      XOF: 1
+    };
+  }
+
+  const normalizedRates = {
+    XOF: 1
+  };
+
+  Object.entries(
+    rawRates
+  ).forEach(
+    ([
+      currencyCode,
+      rawRate
+    ])=>{
+      const normalizedCode =
+        String(
+          currencyCode || ""
+        )
+          .trim()
+          .toUpperCase();
+
+      const numericRate =
+        Number(
+          rawRate
+        );
+
+      /*
+      Refuser les valeurs dangereuses :
+      - NaN ;
+      - Infinity ;
+      - zéro ;
+      - nombre négatif ;
+      - code vide.
+      */
+      if(
+        !normalizedCode ||
+        !Number.isFinite(
+          numericRate
+        ) ||
+        numericRate <= 0
+      ){
+        return;
+      }
+
+      normalizedRates[
+        normalizedCode
+      ] =
+        normalizedCode === "XOF"
+          ? 1
+          : numericRate;
+    }
+  );
+
+  return normalizedRates;
+}
+
+function createMaliPayRateCacheData({
+  rates,
+  source,
+  lastUpdateAt,
+  nextUpdateAt,
+  savedAt = Date.now()
+}){
+  return {
+    schemaVersion:
+      MALIPAY_RATE_SCHEMA_VERSION,
+
+    baseCurrency:
+      "XOF",
+
+    source:
+      source ||
+      "ExchangeRate-API",
+
+    lastUpdateAt:
+      Number(
+        lastUpdateAt || 0
+      ),
+
+    nextUpdateAt:
+      Number(
+        nextUpdateAt || 0
+      ),
+
+    savedAt:
+      Number(
+        savedAt || Date.now()
+      ),
+
+    rates:
+      normalizeStoredRatesToXOF(
+        rates
+      )
+  };
+}
+
+async function readRatesFromFirebase(){
+  try{
+    const snapshot =
+      await get(
+        ref(
+          db,
+          "exchangeRates/XOF"
+        )
+      );
+
+    if(!snapshot.exists()){
+      return null;
+    }
+
+    const firebaseData =
+      snapshot.val();
+
+    if(
+      !firebaseData ||
+      !firebaseData.rates
+    ){
+      return null;
+    }
+
+    return createMaliPayRateCacheData({
+      rates:
+        firebaseData.rates,
+
+      source:
+        firebaseData.source ||
+        "Firebase",
+
+      lastUpdateAt:
+        firebaseData.lastUpdateAt,
+
+      nextUpdateAt:
+        firebaseData.nextUpdateAt,
+
+      savedAt:
+        firebaseData.savedAt
+    });
+
+  }catch(error){
+    console.warn(
+      "Lecture Firebase des taux impossible :",
+      error
+    );
+
+    return null;
+  }
+}
+
+function readMaliPayRateCache(){
+  try{
+    const stored =
+      localStorage.getItem(
+        MALIPAY_RATE_CACHE_KEY
+      );
+
+    if(!stored){
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(stored);
+
+    if(
+      !parsed ||
+      typeof parsed !== "object" ||
+      !parsed.rates ||
+      typeof parsed.rates !== "object"
+    ){
+      return null;
+    }
+
+    return parsed;
+
+  }catch(error){
+    console.warn(
+      "Cache local des taux invalide :",
+      error
+    );
+
+    return null;
+  }
+}
+
+function saveMaliPayRateCache(
+  cacheData
+){
+  try{
+    localStorage.setItem(
+      MALIPAY_RATE_CACHE_KEY,
+      JSON.stringify(cacheData)
+    );
+
+  }catch(error){
+    console.warn(
+      "Enregistrement local des taux impossible :",
+      error
+    );
+  }
+}
+
+function applyMaliPayRateCache(
+  cacheData
+){
+  if(
+    !cacheData ||
+    !cacheData.rates
+  ){
+    return false;
+  }
+
+  const normalizedCache =
+    createMaliPayRateCacheData({
+      rates:
+        cacheData.rates,
+
+      source:
+        cacheData.source,
+
+      lastUpdateAt:
+        cacheData.lastUpdateAt,
+
+      nextUpdateAt:
+        cacheData.nextUpdateAt,
+
+      savedAt:
+        cacheData.savedAt
+    });
+
+  maliPayRatesToXOF =
+    normalizedCache.rates;
+
+  maliPayRateMetadata = {
+    source:
+      normalizedCache.source,
+
+    lastUpdateAt:
+      normalizedCache.lastUpdateAt,
+
+    nextUpdateAt:
+      normalizedCache.nextUpdateAt
+  };
+
+  return true;
+}
+
+function getRateToXOF(
+  currencyCode
+){
+  const normalizedCode =
+    String(currencyCode || "")
+      .trim()
+      .toUpperCase();
+
+  if(normalizedCode === "XOF"){
+    return 1;
+  }
+
+  const rate =
+    Number(
+      maliPayRatesToXOF[
+        normalizedCode
+      ]
+    );
+
+  return (
+    Number.isFinite(rate) &&
+    rate > 0
+  )
+    ? rate
+    : null;
+}
+
+async function saveRatesToFirebase(){
+  try{
+    const firebaseRateData =
+      createMaliPayRateCacheData({
+        rates:
+          maliPayRatesToXOF,
+
+        source:
+          maliPayRateMetadata.source,
+
+        lastUpdateAt:
+          maliPayRateMetadata.lastUpdateAt,
+
+        nextUpdateAt:
+          maliPayRateMetadata.nextUpdateAt,
+
+        savedAt:
+          Date.now()
+      });
+
+    await set(
+      ref(
+        db,
+        "exchangeRates/XOF"
+      ),
+      firebaseRateData
+    );
+
+    return true;
+
+  }catch(error){
+    /*
+    Une erreur Firebase ne doit jamais empêcher
+    l’affichage ou les conversions.
+    */
+    console.warn(
+      "Sauvegarde globale des taux dans Firebase ignorée :",
+      error
+    );
+
+    return false;
+  }
+}
+
+async function loadAllMaliPayRates(
+  forceRefresh = false
+){
+  if(maliPayRatesLoadingPromise){
+    return await maliPayRatesLoadingPromise;
+  }
+
+  maliPayRatesLoadingPromise =
+    (async ()=>{
+      const cachedData =
+        readMaliPayRateCache();
+
+      const now =
+        Date.now();
+
+      const localCacheStillValid =
+        cachedData &&
+        Number(
+          cachedData.nextUpdateAt || 0
+        ) > now;
+
+      /*
+      PRIORITÉ 1 :
+      cache local encore valide.
+      */
+      if(
+        cachedData &&
+        localCacheStillValid &&
+        !forceRefresh
+      ){
+        applyMaliPayRateCache(
+          cachedData
+        );
+
+        console.log(
+          "✅ Taux MaliPay restaurés depuis le cache local."
+        );
+
+        return maliPayRatesToXOF;
+      }
+
+      /*
+      PRIORITÉ 2 :
+      demander des taux frais à ExchangeRate-API.
+      */
+      try{
+        const response =
+          await fetch(
+            MALIPAY_RATE_API_URL,
+            {
+              method:
+                "GET",
+
+              headers: {
+                Accept:
+                  "application/json"
+              },
+
+              cache:
+                "no-store"
+            }
+          );
+
+        if(!response.ok){
+          throw new Error(
+            `Erreur HTTP ${response.status}`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        if(
+          data.result !== "success" ||
+          !data.rates ||
+          typeof data.rates !==
+            "object"
+        ){
+          throw new Error(
+            data["error-type"] ||
+            "Réponse de taux invalide."
+          );
+        }
+
+        const ratesToXOF = {
+          XOF: 1
+        };
+
+        Object.entries(
+          data.rates
+        ).forEach(
+          ([
+            currencyCode,
+            unitsPerXOF
+          ])=>{
+            const normalizedCode =
+              String(
+                currencyCode || ""
+              )
+                .trim()
+                .toUpperCase();
+
+            const numericRate =
+              Number(
+                unitsPerXOF
+              );
+
+            if(
+              !normalizedCode ||
+              !Number.isFinite(
+                numericRate
+              ) ||
+              numericRate <= 0
+            ){
+              return;
+            }
+
+            /*
+            L’API fournit :
+
+            1 XOF = numericRate unités.
+
+            MaliPay enregistre :
+
+            1 unité = combien de XOF.
+
+            Aucune valeur n’est arrondie ici.
+            */
+            ratesToXOF[
+              normalizedCode
+            ] =
+              normalizedCode === "XOF"
+                ? 1
+                : 1 / numericRate;
+          }
+        );
+
+        const lastUpdateAt =
+          Number(
+            data.time_last_update_unix ||
+            0
+          ) * 1000;
+
+        const nextUpdateAt =
+          Number(
+            data.time_next_update_unix ||
+            0
+          ) * 1000;
+
+        const freshCacheData =
+          createMaliPayRateCacheData({
+            rates:
+              ratesToXOF,
+
+            source:
+              "ExchangeRate-API",
+
+            lastUpdateAt:
+              lastUpdateAt ||
+              now,
+
+            nextUpdateAt:
+              nextUpdateAt ||
+              now +
+              MALIPAY_RATE_FALLBACK_TTL,
+
+            savedAt:
+              now
+          });
+
+        applyMaliPayRateCache(
+          freshCacheData
+        );
+
+        saveMaliPayRateCache(
+          freshCacheData
+        );
+
+        await saveRatesToFirebase();
+
+        console.log(
+          "✅ Tous les taux MaliPay ont été chargés :",
+          Object.keys(
+            maliPayRatesToXOF
+          ).length,
+          "devises."
+        );
+
+        return maliPayRatesToXOF;
+
+      }catch(apiError){
+        console.warn(
+          "API de taux momentanément indisponible :",
+          apiError
+        );
+      }
+
+      /*
+      PRIORITÉ 3 :
+      récupérer les derniers taux depuis Firebase.
+      */
+      const firebaseData =
+        await readRatesFromFirebase();
+
+      if(firebaseData){
+        applyMaliPayRateCache(
+          firebaseData
+        );
+
+        saveMaliPayRateCache(
+          firebaseData
+        );
+
+        console.warn(
+          "⚠️ Taux MaliPay restaurés depuis Firebase."
+        );
+
+        return maliPayRatesToXOF;
+      }
+
+      /*
+      PRIORITÉ 4 :
+      utiliser l’ancien cache local expiré.
+      */
+      if(cachedData){
+        applyMaliPayRateCache(
+          cachedData
+        );
+
+        console.warn(
+          "⚠️ Ancien cache local des taux utilisé temporairement."
+        );
+
+        return maliPayRatesToXOF;
+      }
+
+      throw new Error(
+        "Aucun taux de change n’est disponible."
+      );
+    })();
+
+  try{
+    return await maliPayRatesLoadingPromise;
+
+  }finally{
+    maliPayRatesLoadingPromise =
+      null;
+  }
+}
+
+function renderCurrencies(){
+  const search =
+    (
+      searchCurrency.value ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  currencyList.innerHTML =
+    "";
+
+  const entries =
+    Object.entries(
+      allCurrencies
+    )
+      .sort(
+        (
+          [, firstCurrency],
+          [, secondCurrency]
+        ) =>
+          String(
+            firstCurrency?.country ||
+            ""
+          ).localeCompare(
+            String(
+              secondCurrency?.country ||
+              ""
+            ),
+            "fr",
+            {
+              sensitivity:
+                "base"
+            }
+          )
+      );
+
+  if(entries.length === 0){
+    currencyList.innerHTML = `
+      <div class="currency-item">
+        Aucune devise disponible
+      </div>
+    `;
+
+    return;
+  }
+
+  let displayedCurrencies =
+    0;
+
+  for(
+    const [
+      firebaseKey,
+      currency
+    ] of entries
+  ){
+    const prefix =
+      currency.prefix ||
+      firebaseKey;
+
+    const code =
+      String(
+        currency.code ||
+        ""
+      ).toUpperCase();
+
+    const country =
+      currency.country ||
+      "";
+
+    const countryCode =
+      currency.countryCode ||
+      "";
+
+    const flag =
+      currency.flag ||
+      "";
+
+    const symbol =
+      currency.symbol ||
+      code;
+
+    const searchableText =
+      (
+        prefix +
+        " " +
+        code +
+        " " +
+        country +
+        " " +
+        countryCode +
+        " " +
+        flag +
+        " " +
+        symbol
+      ).toLowerCase();
+
+    if(
+      search &&
+      !searchableText.includes(
+        search
+      )
+    ){
+      continue;
+    }
+
+    displayedCurrencies += 1;
+
+    /*
+    Le taux en mémoire est prioritaire.
+
+    Le taux Firebase sert de secours
+    lorsqu’Internet est indisponible.
+    */
+    const liveRate =
+      getRateToXOF(code) ??
+      (
+        Number.isFinite(
+          Number(
+            currency.rateToXOF
+          )
+        )
+          ? Number(
+              currency.rateToXOF
+            )
+          : null
+      );
+
+    currencyList.innerHTML += `
+      <div class="currency-item">
+
+        <div class="currency-code">
+          ${code}
+        </div>
+
+        <div class="currency-country">
+          ${country}
+        </div>
+
+        <div class="currency-rate">
+          🌍 ${flag}
+          ${countryCode}
+          ${country}
+        </div>
+
+        <div class="currency-rate">
+          📱 ${prefix}
+        </div>
+
+        <div class="currency-rate">
+          💵 Symbole :
+          <b>${symbol}</b>
+        </div>
+
+        <div class="currency-rate">
+          💰 1 ${code} =
+          <b>
+            ${
+              liveRate !== null
+                ? formatXOF(
+                    liveRate
+                  )
+                : "Indisponible"
+            }
+          </b>
+        </div>
+
+        <div
+          class="currency-rate"
+          style="
+            font-size:12px;
+            color:#666;
+          "
+        >
+          🔄 Source :
+          ${
+            currency.rateSource ||
+            maliPayRateMetadata.source ||
+            "ExchangeRate-API"
+          }
+        </div>
+
+        <div class="actions">
+          <button
+            class="small-btn delete-btn"
+            onclick="deleteCurrency(
+              '${firebaseKey}',
+              '${countryCode}',
+              '${String(country)
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'")}'
+            )"
+          >
+            🗑 Supprimer
+          </button>
+        </div>
+
+      </div>
+    `;
+  }
+
+  if(displayedCurrencies === 0){
+    currencyList.innerHTML = `
+      <div class="currency-item">
+        Aucun résultat pour cette recherche.
+      </div>
+    `;
+  }
+}
+
+/* =========================
+📡 TEMPS RÉEL
+========================= */
+
+let resolveInitialCurrencies;
+
+const initialCurrenciesPromise =
+  new Promise(resolve => {
+    resolveInitialCurrencies =
+      resolve;
+  });
+
+let initialCurrenciesReceived =
+  false;
+
+onValue(
+  ref(
+    db,
+    "currencies"
+  ),
+  snap => {
+    allCurrencies =
+      snap.val() ||
+      {};
+
+    renderCurrencies();
+
+    if(
+      !initialCurrenciesReceived
+    ){
+      initialCurrenciesReceived =
+        true;
+
+      resolveInitialCurrencies();
+    }
+  }
+);
+
+/* =====================================================
+   🚀 INITIALISATION AUTOMATIQUE
+
+   Ordre :
+   1. charger tous les taux ;
+   2. attendre les anciennes devises Firebase ;
+   3. ajouter ou actualiser tous les pays ;
+   4. réafficher les cartes.
+===================================================== */
+
+async function initializeAutomaticCurrencySystem(){
+  const status =
+    document.getElementById(
+      "currencySyncStatus"
+    );
+
+  try{
+    if(status){
+      status.innerHTML =
+        "⏳ Chargement de tous les taux mondiaux...";
+    }
+
+    await Promise.all([
+      loadAllMaliPayRates(),
+      initialCurrenciesPromise,
+      initialDisabledCurrenciesPromise
+    ]);
+
+    /*
+    Actualiser immédiatement les anciennes
+    cartes avec les taux chargés.
+    */
+    renderCurrencies();
+
+    await synchronizeAutomaticCurrencies();
+
+  }catch(error){
+    console.error(
+      "Erreur initialisation système monétaire MaliPay :",
+      error
+    );
+
+    if(status){
+      status.innerHTML =
+        "❌ Impossible d’initialiser toutes les devises : " +
+        error.message;
+
+      status.style.color =
+        "crimson";
+    }
+  }
+}
+
+initializeAutomaticCurrencySystem();
+
+/* =========================
+🔎 RECHERCHE
+========================= */
+searchCurrency.addEventListener("input",()=>{
+renderCurrencies();
+});
+
+/* =========================
+🗑 SUPPRIMER
+========================= */
+
+window.deleteCurrency =
+async function(
+  firebaseKey,
+  countryCode,
+  countryName
+){
+  const normalizedCountryCode =
+    String(
+      countryCode || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const displayedCountryName =
+    String(
+      countryName ||
+      "ce pays"
+    ).trim();
+
+  const confirmed =
+    confirm(
+      "Supprimer " +
+      displayedCountryName +
+      " de MaliPay ?\n\n" +
+      "Ce pays ne sera plus recréé automatiquement."
+    );
+
+  if(!confirmed){
+    return;
+  }
+
+  try{
+    const firebaseUpdates = {};
+
+    /*
+    Supprimer la carte active.
+    */
+    firebaseUpdates[
+      "currencies/" +
+      firebaseKey
+    ] = null;
+
+    /*
+    Mémoriser la désactivation avec le code ISO.
+    */
+    if(normalizedCountryCode){
+      firebaseUpdates[
+        "disabledCurrencies/" +
+        normalizedCountryCode
+      ] = {
+        countryCode:
+          normalizedCountryCode,
+
+        country:
+          displayedCountryName,
+
+        disabledAt:
+          Date.now()
+      };
+    }
+
+    await update(
+      ref(db),
+      firebaseUpdates
+    );
+
+    alert(
+      "✅ " +
+      displayedCountryName +
+      " a été supprimé durablement."
+    );
+
+  }catch(error){
+    console.error(
+      "Erreur suppression devise :",
+      error
+    );
+
+    alert(
+      "❌ Impossible de supprimer cette devise : " +
+      error.message
+    );
+  }
+};
+
+window.showDisabledCurrencies =
+async function(){
+  const disabledEntries =
+    Object.entries(
+      disabledCurrencies ||
+      {}
+    );
+
+  if(disabledEntries.length === 0){
+    alert(
+      "✅ Aucun pays n’est actuellement désactivé."
+    );
+
+    return;
+  }
+
+  const disabledList =
+    disabledEntries
+      .map(
+        ([
+          countryCode,
+          data
+        ], index) =>
+          (
+            index + 1
+          ) +
+          ". " +
+          (
+            data?.country ||
+            countryCode
+          ) +
+          " (" +
+          countryCode +
+          ")"
+      )
+      .join("\n");
+
+  const countryCodeToRestore =
+    prompt(
+      "Pays désactivés :\n\n" +
+      disabledList +
+      "\n\n" +
+      "Entre le code ISO du pays à restaurer.\n" +
+      "Exemple : NG"
+    );
+
+  if(!countryCodeToRestore){
+    return;
+  }
+
+  const normalizedCountryCode =
+    String(
+      countryCodeToRestore
+    )
+      .trim()
+      .toUpperCase();
+
+  if(
+    !disabledCurrencies[
+      normalizedCountryCode
+    ]
+  ){
+    alert(
+      "❌ Ce code pays n’est pas dans la liste des pays désactivés."
+    );
+
+    return;
+  }
+
+  try{
+    await remove(
+      ref(
+        db,
+        "disabledCurrencies/" +
+        normalizedCountryCode
+      )
+    );
+
+    delete disabledCurrencies[
+      normalizedCountryCode
+    ];
+
+    await synchronizeAutomaticCurrencies();
+
+    alert(
+      "✅ Le pays " +
+      normalizedCountryCode +
+      " a été réactivé."
+    );
+
+  }catch(error){
+    console.error(
+      "Erreur réactivation pays :",
+      error
+    );
+
+    alert(
+      "❌ Impossible de réactiver ce pays : " +
+      error.message
+    );
+  }
+};
+
+const prefixInput =
+document.getElementById("prefix");
+
+prefixInput.addEventListener("input",()=>{
+
+const prefix =
+prefixInput.value.trim();
+
+const data =
+countriesData[prefix];
+
+if(!data) return;
+
+document.getElementById("code").value =
+data.code;
+
+document.getElementById("country").value =
+data.country;
+
+document.getElementById("flag").value =
+data.flag;
+
+document.getElementById("symbol").value =
+data.symbol;
+
+});
+
+</script>
+
+</body>
+</html> 

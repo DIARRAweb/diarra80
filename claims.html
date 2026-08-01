@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Réclamations — COBRA</title>
+
+<style>
+body {
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+}
+
+/* 🔥 BACKGROUND */
+#bg-video {
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+filter:brightness(0.75) saturate(1.3);
+}
+
+body::before {
+content:"";
+position:fixed;
+inset:0;
+background:linear-gradient(135deg, rgba(255,140,0,0.4), rgba(255,60,0,0.3));
+z-index:-1;
+}
+
+/* HEADER FIXE */
+.header {
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:15px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+color:white;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+z-index:1000;
+}
+
+/* CONTENU SCROLL */
+.container {
+margin-top:80px;
+padding:15px;
+max-width:900px;
+margin-left:auto;
+margin-right:auto;
+}
+
+/* CARD */
+.card {
+background:rgba(255,255,255,0.95);
+border-radius:18px;
+padding:15px;
+margin-bottom:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(20px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+/* BOUTONS */
+button {
+width:100%;
+padding:12px;
+border-radius:12px;
+border:none;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
+}
+
+button:hover {
+transform:scale(1.05);
+}
+
+/* FOOTER FIXE */
+.footer {
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+padding:15px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+}
+
+.footer button {
+background:linear-gradient(45deg,#555,#222);
+}
+
+.vault-alert-card{
+  border-left:6px solid #d90429;
+  background:linear-gradient(145deg,#fff,#ffecec);
+}
+
+.vault-warning{
+  color:#d90429;
+  font-weight:900;
+  margin-top:8px;
+}
+
+.unlock-btn{
+  background:linear-gradient(45deg,#d90429,#7a0010) !important;
+}
+</style>
+</head>
+
+<body>
+
+<video autoplay muted loop id="bg-video">
+<source src="bg-admin.mp4">
+</video>
+
+<div class="header">🚨 Réclamations COBRA</div>
+
+<div class="container">
+<div id="claimList"></div>
+</div>
+
+<div class="footer">
+<button onclick="location.href='admin.html'">⬅ Retour</button>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, get, update, push, remove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+import { onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+const app = initializeApp({
+databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/"
+});
+
+const db = getDatabase(app);
+const claimList = document.getElementById("claimList");
+
+function listenVaultUnlockClaims(){
+  onValue(ref(db,"vaultUnlockClaims"), async (snap)=>{
+
+    const claims = snap.val() || {};
+
+    for(const [claimKey,c] of Object.entries(claims)){
+
+      if(c.status === "resolved") continue;
+
+      claimList.innerHTML += `
+        <div class="card vault-alert-card">
+          🔐 <b>Demande de déblocage coffre</b><br>
+          👤 Utilisateur : ${c.userName || ""}<br>
+          📱 Téléphone : ${c.userPhone}<br>
+          🏦 Coffre : <b>${c.vaultName}</b><br>
+          💰 Montant : ${Number(c.amount || 0).toLocaleString()}<br>
+          ⏳ Échéance normale : ${new Date(c.lockedUntil).toLocaleString()}<br>
+
+          <div class="vault-warning">
+            ⚠️ Demande urgente : déblocage avant échéance
+          </div>
+
+          <button class="unlock-btn"
+            onclick="unlockVaultByService('${claimKey}','${c.userPhone}','${c.vaultId}')">
+            🔓 Débloquer le coffre
+          </button>
+
+          <button onclick="deleteVaultUnlockClaim('${claimKey}')"
+            style="background:gray;">
+            🗑 Supprimer
+          </button>
+        </div>
+      `;
+    }
+
+  });
+}
+
+function listenClaims(){
+onValue(ref(db,"serviceClaims"), async (snap)=>{
+const claims = snap.val() || {};
+claimList.innerHTML="";
+let hasClaims=false;
+
+for(const [claimKey,c] of Object.entries(claims)){
+if(c.status==="resolved") continue;
+
+const historySnap = await get(ref(db,"history/"+c.user+"/"+c.txId));
+const h = historySnap.val();
+
+if(!h) continue;
+
+hasClaims=true;
+
+claimList.innerHTML += `
+<div class="card">
+🆔 <b>${h.customID || c.txId}</b><br>
+📤 ${h.from}<br>
+📥 ${h.to}<br>
+💰 ${h.amountOriginal}<br>
+🕒 ${h.date}<br>
+🧠 Risque : ${
+c.risk === "high_risk" ? "🔴 Élevé" :
+c.risk === "medium_risk" ? "🟡 Moyen" :
+"🟢 Normal"
+}<br>
+
+<button onclick="resolveClaim('${c.txId}','${c.user}','${claimKey}')">
+✔ Résoudre & Annuler transaction
+</button>
+
+<button onclick="deleteClaim('${claimKey}','${h.to}','${h.amountConverted}')"
+style="background:gray;">
+🗑 Supprimer
+</button>
+</div>
+`;
+}
+
+if(!hasClaims){
+claimList.innerHTML=`<div style="text-align:center;color:white;font-weight:bold;">
+✅ Aucune réclamation
+</div>`;
+}
+});
+}
+
+window.resolveClaim = async (historyKey, user, claimKey) => {
+
+const snap = await get(ref(db,"history/"+user+"/"+historyKey));
+const h = snap.val();
+
+if(!h) return alert("❌ Transaction introuvable");
+if(h.cancelled) return alert("⚠ Déjà annulée");
+
+const senderSnap = await get(ref(db,"users/"+h.from));
+const receiverSnap = await get(ref(db,"users/"+h.to));
+
+let sender = senderSnap.val();
+let receiver = receiverSnap.val();
+
+if(!sender || !receiver) return alert("❌ Comptes introuvables");
+
+/* =========================
+💱 REMBOURSEMENT MULTI-DEVISE
+========================= */
+
+/*
+🔥 montant envoyé
+(devise expéditeur)
+*/
+const senderAmount =
+Number(h.amountOriginal || 0);
+
+/*
+🔥 montant reçu
+(devise destinataire)
+*/
+const receiverAmount =
+Number(h.amountConverted || 0);
+
+/* ❌ sécurité */
+const disponible =
+receiver.solde -
+(receiver.frozenBalance || 0);
+
+/*
+🔥 vérifier si le destinataire
+possède toujours le montant reçu
+*/
+
+if(receiver.solde < receiverAmount){
+return alert(
+"❌ Le destinataire ne possède plus assez de fonds"
+);
+}
+
+/* =========================
+💸 REMBOURSEMENT
+========================= */
+
+/*
+🔥 expéditeur récupère
+son montant original
+*/
+
+sender.solde =
+Number(sender.solde || 0)
++ senderAmount;
+
+/*
+🔥 destinataire perd
+seulement ce qu'il a reçu
+*/
+
+receiver.solde =
+Number(receiver.solde || 0)
+- receiverAmount;
+
+/* =========================
+🔓 RETIRER GEL
+========================= */
+
+receiver.frozenBalance =
+Number(receiver.frozenBalance || 0)
+- receiverAmount;
+
+if(receiver.frozenBalance < 0){
+receiver.frozenBalance = 0;
+}
+
+/* 🔄 mise à jour */
+await update(ref(db,"users/"+h.from), sender);
+
+await update(ref(db,"users/"+h.to),{
+solde: receiver.solde,
+frozenBalance: receiver.frozenBalance
+});
+
+await update(ref(db,"history/"+user+"/"+historyKey),{
+cancelled:true,
+status:"Annulée après réclamation"
+});
+
+await update(ref(db,"serviceClaims/"+claimKey),{
+status:"resolved"
+});
+
+/* 🔔 notif */
+await push(ref(db,"notifications/"+h.from),{
+title:"💸 Remboursement",
+amount:senderAmount,
+phone:h.to,
+date:new Date().toLocaleString()
+});
+
+alert("✅ Transaction annulée et remboursée !");
+};
+
+window.unlockVaultByService = async function(claimKey, userPhone, vaultId){
+
+  if(!confirm("⚠️ Débloquer ce coffre avant son échéance ?")) return;
+
+  const vaultRef = ref(db, "users/" + userPhone + "/vaults/" + vaultId);
+  const snap = await get(vaultRef);
+
+  if(!snap.exists()){
+    alert("❌ Coffre introuvable");
+    return;
+  }
+
+  const vault = snap.val();
+
+  await update(vaultRef, {
+    locked: false,
+    lockedUntil: 0,
+    serviceUnlocked: true,
+    serviceUnlockedAt: Date.now(),
+    serviceWarningUntil: Date.now() + (7 * 24 * 60 * 60 * 1000),
+    unlockRequest: {
+      id: claimKey,
+      status: "approved",
+      approvedAt: Date.now()
+    }
+  });
+
+  await update(ref(db,"vaultUnlockClaims/" + claimKey), {
+    status: "resolved",
+    resolvedAt: Date.now()
+  });
+
+  await push(ref(db,"notifications/" + userPhone), {
+    title: "⚠️ Coffre débloqué par le service",
+    phone: "SERVICE COBRA",
+    amount: vault.balance || 0,
+    reason: "Ton coffre a été débloqué avant son échéance par le service.",
+    date: new Date().toLocaleString(),
+    seen: false
+  });
+
+  alert("✅ Coffre débloqué par le service");
+};
+
+window.deleteVaultUnlockClaim = async function(claimKey){
+  if(!confirm("Supprimer cette demande ?")) return;
+  await remove(ref(db,"vaultUnlockClaims/" + claimKey));
+  alert("✅ Demande supprimée");
+};
+
+
+async function renderAllClaims(){
+  claimList.innerHTML = "";
+  let hasClaims = false;
+
+  const serviceSnap = await get(ref(db,"serviceClaims"));
+  const serviceClaims = serviceSnap.val() || {};
+
+  for(const [claimKey,c] of Object.entries(serviceClaims)){
+    if(c.status === "resolved") continue;
+
+    const historySnap = await get(ref(db,"history/"+c.user+"/"+c.txId));
+    const h = historySnap.val();
+
+    if(!h) continue;
+
+    hasClaims = true;
+
+    claimList.innerHTML += `
+      <div class="card">
+        🆔 <b>${h.customID || c.txId}</b><br>
+        📤 ${h.from}<br>
+        📥 ${h.to}<br>
+        💰 ${h.amountOriginal}<br>
+        🕒 ${h.date}<br>
+        🧠 Risque : ${
+          c.risk === "high_risk" ? "🔴 Élevé" :
+          c.risk === "medium_risk" ? "🟡 Moyen" :
+          "🟢 Normal"
+        }<br>
+
+        <button onclick="resolveClaim('${c.txId}','${c.user}','${claimKey}')">
+          ✔ Résoudre & Annuler transaction
+        </button>
+
+        <button onclick="deleteClaim('${claimKey}','${h.to}','${h.amountConverted}')"
+        style="background:gray;">
+          🗑 Supprimer
+        </button>
+      </div>
+    `;
+  }
+
+  const vaultSnap = await get(ref(db,"vaultUnlockClaims"));
+  const vaultClaims = vaultSnap.val() || {};
+
+  for(const [claimKey,c] of Object.entries(vaultClaims)){
+    if(c.status === "resolved") continue;
+
+    hasClaims = true;
+
+    claimList.innerHTML += `
+      <div class="card vault-alert-card">
+        🔐 <b>Demande de déblocage coffre</b><br>
+        👤 Utilisateur : ${c.userName || ""}<br>
+        📱 Téléphone : ${c.userPhone}<br>
+        🏦 Coffre : <b>${c.vaultName}</b><br>
+        💰 Montant : ${Number(c.amount || 0).toLocaleString()}<br>
+        ⏳ Échéance normale : ${new Date(c.lockedUntil).toLocaleString()}<br>
+
+        <div class="vault-warning">
+          ⚠️ Demande urgente : déblocage avant échéance
+        </div>
+
+        <button class="unlock-btn"
+          onclick="unlockVaultByService('${claimKey}','${c.userPhone}','${c.vaultId}')">
+          🔓 Débloquer le coffre
+        </button>
+
+        <button onclick="deleteVaultUnlockClaim('${claimKey}')"
+        style="background:gray;">
+          🗑 Supprimer
+        </button>
+      </div>
+    `;
+  }
+
+  if(!hasClaims){
+    claimList.innerHTML = `
+      <div style="text-align:center;color:white;font-weight:bold;">
+        ✅ Aucune réclamation
+      </div>
+    `;
+  }
+}
+
+onValue(ref(db,"serviceClaims"), renderAllClaims);
+onValue(ref(db,"vaultUnlockClaims"), renderAllClaims);
+
+window.deleteClaim = async function(claimKey, receiverPhone, amount){
+
+if(!confirm("Supprimer cette réclamation ?")) return;
+
+const receiverSnap = await get(ref(db,"users/"+receiverPhone));
+
+if(receiverSnap.exists()){
+let receiver = receiverSnap.val();
+
+/* =========================
+🔓 DÉBLOQUER ARGENT
+========================= */
+
+/*
+🔥 amount ici doit être
+le montant reçu
+*/
+
+receiver.frozenBalance =
+Number(receiver.frozenBalance || 0)
+- Number(amount || 0);
+
+if(receiver.frozenBalance < 0){
+receiver.frozenBalance = 0;
+}
+
+await update(ref(db,"users/"+receiverPhone),{
+frozenBalance: receiver.frozenBalance
+});
+}
+
+/* suppression */
+await remove(ref(db,"serviceClaims/"+claimKey));
+
+alert("✅ Réclamation supprimée & argent débloqué");
+};
+
+</script>
+</body>
+</html>
+

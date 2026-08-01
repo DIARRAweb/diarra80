@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mali Wari - Service Appel</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+  --blue:#0d3b66;
+  --blue-dark:#06213d;
+  --green:#16a34a;
+  --green-light:#22c55e;
+  --soft:#eef4fb;
+  --white:#ffffff;
+  --red:#d90429;
+}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",sans-serif;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(22,163,74,.28), transparent 34%),
+    linear-gradient(135deg,#06142e,#0d3b66);
+  color:white;
+  padding:22px;
+}
+
+.page-layout{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:390px 1fr;
+  gap:22px;
+  align-items:start;
+}
+
+.card{
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  color:var(--blue);
+  border-radius:32px;
+  padding:24px;
+  box-shadow:0 26px 70px rgba(0,0,0,.30);
+  border:1px solid rgba(255,255,255,.72);
+}
+
+.card h1{
+  margin:0 0 10px;
+  text-align:center;
+  font-size:26px;
+  font-weight:950;
+  color:var(--blue);
+}
+
+.card p{
+  text-align:center;
+  color:#5b6b80;
+  font-weight:800;
+}
+
+.service-card{
+  position:sticky;
+  top:20px;
+}
+
+.call-item{
+  background:linear-gradient(145deg,#ffffff,#eef6ff);
+  padding:17px;
+  border-radius:24px;
+  margin-top:14px;
+  border-left:6px solid var(--green);
+  box-shadow:0 14px 34px rgba(13,59,102,.14);
+  color:var(--blue);
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border:none;
+  border-radius:18px;
+  font-weight:950;
+  cursor:pointer;
+  color:white;
+  background:linear-gradient(135deg,var(--green),var(--green-light));
+  box-shadow:0 12px 26px rgba(22,163,74,.28);
+  transition:.25s ease;
+}
+
+button:hover{
+  transform:translateY(-2px);
+}
+
+.end{
+  background:linear-gradient(135deg,var(--red),#8b0000);
+  box-shadow:0 12px 26px rgba(217,4,41,.26);
+}
+
+.search-btn{
+  background:linear-gradient(135deg,var(--blue),#14558f);
+}
+
+.sound-btn{
+  background:linear-gradient(135deg,#2563eb,var(--blue));
+}
+
+audio{
+  width:100%;
+  margin-top:16px;
+  border-radius:14px;
+}
+
+.client-card{
+  margin-top:18px;
+  background:linear-gradient(145deg,#ffffff,#eef6ff);
+  color:var(--blue);
+  border-radius:28px;
+  padding:20px;
+  box-shadow:0 14px 34px rgba(13,59,102,.14);
+}
+
+.client-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.client-header img{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid var(--green);
+  box-shadow:0 0 0 7px rgba(22,163,74,.12);
+}
+
+.client-name{
+  font-size:23px;
+  font-weight:950;
+}
+
+.client-balance{
+  margin-top:15px;
+  padding:15px;
+  border-radius:20px;
+  background:white;
+  font-weight:950;
+  box-shadow:0 10px 24px rgba(13,59,102,.12);
+}
+
+.search-box{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1fr 160px;
+  gap:10px;
+}
+
+.search-box input{
+  width:100%;
+  padding:14px;
+  border-radius:18px;
+  border:2px solid #dbe5f0;
+  font-weight:850;
+  outline:none;
+}
+
+.search-box input:focus{
+  border-color:var(--green);
+  box-shadow:0 0 0 4px rgba(22,163,74,.14);
+}
+
+.history-item{
+  margin-top:12px;
+  padding:15px;
+  border-radius:20px;
+  background:linear-gradient(145deg,#ffffff,#eef6ff);
+  cursor:pointer;
+  border-left:5px solid var(--green);
+  box-shadow:0 10px 24px rgba(13,59,102,.12);
+  color:var(--blue);
+  transition:.25s ease;
+}
+
+.history-item:hover{
+  background:#eafff1;
+  transform:translateX(4px);
+}
+
+.receipt-box{
+  margin-top:16px;
+  padding:18px;
+  border-radius:24px;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:white;
+  box-shadow:0 18px 42px rgba(13,59,102,.30);
+}
+
+.ringing{
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  0%{box-shadow:0 0 0 rgba(22,163,74,0);}
+  50%{box-shadow:0 0 24px rgba(22,163,74,.65);}
+  100%{box-shadow:0 0 0 rgba(22,163,74,0);}
+}
+
+@media(max-width:850px){
+  body{padding:14px}
+
+  .page-layout{
+    grid-template-columns:1fr;
+  }
+
+  .service-card{
+    position:relative;
+    top:auto;
+  }
+
+  .search-box{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page-layout">
+
+  <div class="card service-card">
+    <h1>📞 Service Appel</h1>
+    <p>Appels entrants des utilisateurs Mali Wari</p>
+
+    <div id="callsList"></div>
+
+    <audio id="remoteAudio" autoplay playsinline controls></audio>
+
+    <button class="end" onclick="endCurrentCall()">📴 Raccrocher</button>
+
+    <button class="sound-btn" onclick="changeAdminRingSound()">🔊 Changer la sonnerie</button>
+
+    <audio id="adminRingSound" loop src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"></audio>
+  </div>
+
+  <div class="card client-panel">
+    <h1>👤 Fiche client</h1>
+
+    <div class="search-box">
+      <input id="adminSearchInput" placeholder="Numéro ou ID transaction">
+      <button class="search-btn" onclick="adminSearch()">🔍 Rechercher</button>
+    </div>
+
+    <div id="clientInfo"></div>
+    <div id="clientHistory"></div>
+    <div id="transactionReceipt"></div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  update,
+  push,
+  get
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+  authDomain: "securite-53ada.firebaseapp.com",
+  databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+  projectId: "securite-53ada",
+  storageBucket: "securite-53ada.firebasestorage.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let currentPeer = null;
+let currentStream = null;
+let currentCallId = null;
+let activeCallerPhone = null;
+
+const rtcConfig = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: [
+        "turn:187.124.112.223:3478?transport=udp",
+        "turn:187.124.112.223:3478?transport=tcp"
+      ],
+      username: "cobraadmin",
+      credential: "Cobra2026Secure"
+    }
+  ]
+};
+
+const savedAdminRing = localStorage.getItem("adminCallRingSound");
+const adminRingAudio = document.getElementById("adminRingSound");
+
+if(savedAdminRing && adminRingAudio){
+  adminRingAudio.src = savedAdminRing;
+  adminRingAudio.load();
+}
+
+window.changeAdminRingSound = function(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "audio/*";
+
+  input.onchange = function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async function(){
+      const soundData = reader.result;
+
+      await update(ref(db, "settings/serviceCall"), {
+        ringSound: soundData,
+        updatedAt: Date.now()
+      });
+
+      const ring = document.getElementById("adminRingSound");
+      if(ring){
+        ring.src = soundData;
+        ring.load();
+        ring.play().then(()=>{
+          setTimeout(()=>{
+            ring.pause();
+            ring.currentTime = 0;
+          }, 4000);
+        }).catch(()=>{});
+      }
+
+      alert("✅ Sonnerie universelle enregistrée pour tous les utilisateurs");
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+};
+
+onValue(ref(db, "settings/serviceCall/ringSound"), snap => {
+  const sound = snap.val();
+  const ring = document.getElementById("adminRingSound");
+
+  if(sound && ring){
+    ring.src = sound;
+    ring.load();
+  }
+});
+
+function playAdminRing(){
+  const ring = document.getElementById("adminRingSound");
+  if(ring){
+    ring.currentTime = 0;
+    ring.volume = 0.9;
+    ring.play().catch(()=>{});
+  }
+}
+
+function stopAdminRing(){
+  const ring = document.getElementById("adminRingSound");
+  if(ring){
+    ring.pause();
+    ring.currentTime = 0;
+  }
+}
+
+function formatMoney(amount){
+  return Number(amount || 0).toLocaleString("fr-FR") + " FCFA";
+}
+
+onValue(ref(db, "serviceCalls"), snap => {
+  const callsList = document.getElementById("callsList");
+  callsList.innerHTML = "";
+
+  let hasRingingCall = false;
+
+  if(snap.exists()){
+    Object.entries(snap.val()).reverse().forEach(([id, call]) => {
+
+      if(call.status !== "ringing") return;
+
+      hasRingingCall = true;
+
+      callsList.innerHTML += `
+        <div class="call-item ringing">
+          <strong>👤 ${call.userName || "Utilisateur"}</strong><br>
+          📱 ${call.userPhone || ""}<br>
+
+          <button onclick="acceptCall('${id}')">
+            ✅ Décrocher
+          </button>
+
+          <button class="end" onclick="rejectCall('${id}')">
+            ❌ Refuser
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  if(hasRingingCall){
+    playAdminRing();
+  }else{
+    stopAdminRing();
+
+    if(callsList.innerHTML === ""){
+      callsList.innerHTML = "<p>Aucun appel entrant.</p>";
+    }
+  }
+});
+
+window.acceptCall = async function(callId){
+
+  try{
+
+    stopAdminRing();
+
+    currentCallId = callId;
+
+    const callSnap = await get(
+      ref(db,"serviceCalls/" + callId)
+    );
+
+    if(callSnap.exists()){
+      const call = callSnap.val();
+
+      activeCallerPhone = call.userPhone || null;
+
+      if(activeCallerPhone){
+        loadClientProfile(activeCallerPhone);
+      }
+    }
+
+    currentStream = await navigator.mediaDevices.getUserMedia({
+      audio:true,
+      video:false
+    });
+
+    currentPeer = new RTCPeerConnection(rtcConfig);
+
+    currentStream.getTracks().forEach(track=>{
+      currentPeer.addTrack(track,currentStream);
+    });
+
+    currentPeer.ontrack = function(event){
+      const audio = document.getElementById("remoteAudio");
+
+        audio.srcObject = event.streams[0];
+        audio.volume = 1;
+        audio.play().catch(()=>{});
+      };
+
+    currentPeer.onicecandidate = async function(event){
+
+      if(event.candidate){
+
+        await push(
+          ref(db,"serviceCalls/" + callId + "/adminCandidates"),
+          {
+            candidate:event.candidate.toJSON()
+          }
+        );
+      }
+    };
+
+    const freshCallSnap = await get(ref(db,"serviceCalls/" + callId));
+      const freshCall = freshCallSnap.val();
+
+      if(!freshCall || !freshCall.offer){
+        alert("❌ Offre d'appel introuvable");
+        return;
+      }
+
+      await currentPeer.setRemoteDescription(
+        new RTCSessionDescription(freshCall.offer)
+      );
+
+      const answer = await currentPeer.createAnswer();
+
+      await currentPeer.setLocalDescription(answer);
+
+      await update(ref(db,"serviceCalls/" + callId), {
+        status:"accepted",
+        answer:{
+          type:answer.type,
+          sdp:answer.sdp
+        },
+        acceptedAt:Date.now()
+      });
+
+    onValue(
+      ref(db,"serviceCalls/" + callId + "/callerCandidates"),
+      snap => {
+
+        const data = snap.val();
+
+        if(!data || !currentPeer) return;
+
+        Object.values(data).forEach(async item=>{
+
+          try{
+
+            await currentPeer.addIceCandidate(
+              new RTCIceCandidate(item.candidate)
+            );
+
+          }catch(e){
+            console.log(e);
+          }
+        });
+      }
+    );
+
+  }catch(error){
+
+    alert("Erreur appel : " + error.message);
+  }
+};
+
+window.rejectCall = async function(callId){
+
+  stopAdminRing();
+
+  await update(
+    ref(db,"serviceCalls/" + callId),
+    {
+      status:"rejected",
+      rejectedAt:Date.now()
+    }
+  );
+};
+
+window.endCurrentCall = async function(){
+
+  stopAdminRing();
+
+  if(currentStream){
+    currentStream.getTracks().forEach(track=>{
+      track.stop();
+    });
+  }
+
+  if(currentPeer){
+    currentPeer.close();
+  }
+
+  if(currentCallId){
+
+    await update(
+      ref(db,"serviceCalls/" + currentCallId),
+      {
+        status:"ended",
+        endedAt:Date.now()
+      }
+    );
+  }
+
+  currentPeer = null;
+  currentStream = null;
+  currentCallId = null;
+
+  alert("📞 Appel terminé");
+};
+
+async function loadClientProfile(phone){
+
+  const info = document.getElementById("clientInfo");
+  const history = document.getElementById("clientHistory");
+
+  info.innerHTML = "Chargement...";
+  history.innerHTML = "";
+
+  const userSnap = await get(
+    ref(db,"users/" + phone)
+  );
+
+  if(!userSnap.exists()){
+
+    info.innerHTML =
+      "<div class='client-card'>Utilisateur introuvable</div>";
+
+    return;
+  }
+
+  const user = userSnap.val();
+
+  info.innerHTML = `
+    <div class="client-card">
+
+      <div class="client-header">
+
+        <img src="${
+          user.photo ||
+          'https://ui-avatars.com/api/?name=' +
+          encodeURIComponent(user.name || 'U')
+        }">
+
+        <div>
+          <div class="client-name">
+            ${user.name || "Utilisateur"}
+          </div>
+
+          <div>
+            📱 ${phone}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="client-balance">
+        💰 Solde : ${formatMoney(user.solde)}
+      </div>
+
+    </div>
+  `;
+
+  const historySnap = await get(
+    ref(db,"history/" + phone)
+  );
+
+  if(!historySnap.exists()){
+
+    history.innerHTML =
+      "<div class='client-card'>Aucun historique</div>";
+
+    return;
+  }
+
+  Object.entries(historySnap.val())
+    .reverse()
+    .slice(0,50)
+    .forEach(([id,tx])=>{
+
+      history.innerHTML += `
+        <div class="history-item"
+             onclick='showReceipt(${JSON.stringify(tx)})'>
+
+          <strong>
+            ${tx.type || "transaction"}
+          </strong><br>
+
+          ${tx.customID || ""}<br>
+
+          ${formatMoney(tx.amountOriginal)}
+
+        </div>
+      `;
+    });
+}
+
+window.showReceipt = function(tx){
+
+  document.getElementById(
+    "transactionReceipt"
+  ).innerHTML = `
+
+    <div class="receipt-box">
+
+      <h3>🧾 Facture</h3>
+
+      <p>ID : ${tx.customID || "-"}</p>
+
+      <p>Type : ${tx.type || "-"}</p>
+
+      <p>Montant :
+      ${formatMoney(tx.amountOriginal)}</p>
+
+      <p>Date :
+      ${tx.date || "-"}</p>
+
+      <p>De :
+      ${tx.from || "-"}</p>
+
+      <p>Vers :
+      ${tx.to || "-"}</p>
+
+      <p>Motif :
+      ${tx.reason || "-"}</p>
+
+    </div>
+  `;
+};
+
+window.adminSearch = async function(){
+
+  const q =
+    document.getElementById(
+      "adminSearchInput"
+    ).value.trim();
+
+  if(!q) return;
+
+  const usersSnap =
+    await get(ref(db,"users"));
+
+  if(usersSnap.exists()){
+
+    const users = usersSnap.val();
+
+    for(const phone in users){
+
+      if(phone.includes(q)){
+
+        loadClientProfile(phone);
+
+        return;
+      }
+    }
+  }
+
+  alert(
+    "Aucun utilisateur trouvé.\n\n" +
+    "La recherche par ID transaction sera ajoutée dans l'étape suivante."
+  );
+};
+</script>
+
+</body>
+</html>

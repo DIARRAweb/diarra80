@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historique — COBRA</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+background:#000;
+}
+
+/* =========================
+🔥 HEADER COMME MONEY-MONITOR
+========================= */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+header h1{
+font-size:20px;
+font-weight:bold;
+color:white;
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-2;
+overflow:hidden;
+background:#000;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.25);
+z-index:-1;
+}
+
+/* =========================
+🔥 AUDIO
+========================= */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:none;
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+}
+
+/* =========================
+🔥 CONTAINER
+========================= */
+.container{
+width:92%;
+max-width:1400px;
+margin:25px auto;
+}
+
+/* =========================
+🔥 SECTION TITLE
+========================= */
+.section-title{
+font-size:22px;
+margin:30px 0 15px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:14px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+}
+
+/* =========================
+🔥 CARD
+========================= */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:22px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* =========================
+🔥 SEARCH BAR
+========================= */
+.history-tools{
+display:grid;
+grid-template-columns:1fr auto auto;
+gap:12px;
+align-items:center;
+}
+
+input{
+width:100%;
+padding:13px 15px;
+border-radius:14px;
+border:1px solid #ddd;
+font-size:15px;
+outline:none;
+background:#f7f7f7;
+transition:0.25s;
+}
+
+input:focus{
+border-color:#ff6a00;
+background:white;
+box-shadow:0 0 0 4px rgba(255,106,0,0.12);
+}
+
+/* =========================
+🔥 BUTTONS
+========================= */
+button{
+padding:13px 16px;
+border:none;
+border-radius:14px;
+font-weight:bold;
+cursor:pointer;
+transition:0.25s;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+white-space:nowrap;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+.btn-danger{
+background:crimson !important;
+}
+
+.btn-dark{
+background:linear-gradient(45deg,#222,#444) !important;
+}
+
+/* =========================
+🔥 TABLE
+========================= */
+.table-box{
+margin-top:18px;
+overflow:auto;
+max-height:520px;
+border-radius:15px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:15px;
+overflow:hidden;
+color:#111;
+min-width:950px;
+}
+
+th{
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+padding:12px;
+text-align:left;
+position:sticky;
+top:0;
+z-index:2;
+}
+
+td{
+padding:12px;
+border-bottom:1px solid #eee;
+vertical-align:middle;
+white-space:nowrap;
+}
+
+tr:hover{
+background:#fff3e0;
+}
+
+/* =========================
+🔥 BADGES
+========================= */
+.badge{
+padding:6px 12px;
+border-radius:999px;
+font-size:13px;
+font-weight:bold;
+display:inline-block;
+}
+
+.badge-normal{
+background:rgba(0,200,83,0.12);
+color:#00c853;
+}
+
+.badge-claim{
+background:rgba(255,0,0,0.12);
+color:red;
+}
+
+.badge-cancel{
+background:rgba(100,116,139,0.15);
+color:#475569;
+}
+
+/* =========================
+🔥 ID COURT
+========================= */
+.tx-id{
+max-width:150px;
+display:inline-block;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+cursor:pointer;
+font-weight:bold;
+color:#ff3d00;
+transition:0.2s;
+}
+
+.tx-id:hover{
+color:#111;
+}
+
+.tx-id.expanded{
+white-space:normal;
+overflow:visible;
+max-width:350px;
+}
+
+.arrow{
+font-size:18px;
+color:red;
+animation:moveArrow 0.8s infinite alternate;
+}
+
+@keyframes moveArrow{
+0%{transform:translateX(0);}
+100%{transform:translateX(8px);}
+}
+
+.hidden{
+display:none;
+}
+
+.empty-box{
+text-align:center;
+padding:25px;
+font-weight:bold;
+color:#555;
+}
+
+/* =========================
+🔥 RESPONSIVE
+========================= */
+@media(max-width:850px){
+.history-tools{
+grid-template-columns:1fr;
+}
+
+button{
+width:100%;
+}
+
+header h1{
+font-size:17px;
+}
+
+.section-title{
+font-size:18px;
+}
+
+.card{
+padding:16px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage" alt="">
+</div>
+<div class="hero-overlay"></div>
+
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<!-- =========================
+🔥 HEADER
+========================= -->
+<header>
+<h1>📜 Historique — COBRA</h1>
+<div class="live-box">
+<div class="live-dot"></div>
+LIVE
+</div>
+</header>
+
+<div class="container">
+
+<h2 class="section-title">
+<span>📜 Historique des transactions</span>
+<span>COBRA Admin</span>
+</h2>
+
+<div class="card">
+
+<div class="history-tools">
+<input
+id="searchHistory"
+placeholder="🔎 Rechercher par ID, numéro, montant, date ou statut..."
+>
+
+<button onclick="toggleHistory()">
+👁 Afficher / Masquer
+</button>
+
+<button class="btn-dark" onclick="location.href='admin.html'">
+⬅ Retour
+</button>
+</div>
+
+<div id="historyContainer" class="table-box">
+<div id="historyList" class="hidden"></div>
+</div>
+
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, get, update, push, remove, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
+const firebaseConfig = {
+    apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+    authDomain: "securite-53ada.firebaseapp.com",
+    databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+    projectId: "securite-53ada",
+    storageBucket: "securite-53ada.firebasestorage.app" // ✅ TRÈS IMPORTANT
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* =========================
+🔥 ELEMENTS
+========================= */
+const historyList =
+document.getElementById("historyList");
+
+const searchInput =
+document.getElementById("searchHistory");
+
+const video =
+document.getElementById("bgVideo");
+
+const image =
+document.getElementById("bgImage");
+
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+/* =========================
+📦 DATA
+========================= */
+let cachedHistory = {};
+let currencyMap = {};
+let isMuted = true;
+let currentIsVideo = false;
+
+let mediaList = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97",
+duration:10
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4",
+duration:10
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+function switchMedia(){
+if(!mediaList.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = mediaList[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+const duration =
+Number(ad.duration || video.duration || 10);
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % mediaList.length;
+switchMedia();
+}, duration * 1000);
+};
+
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+Number(ad.duration || 10);
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % mediaList.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+switchMedia();
+
+/* 🔥 ADS FIREBASE */
+onValue(ref(db,"ads"), snap => {
+const data = snap.val();
+
+if(!data) return;
+
+mediaList = Object.values(data)
+.filter(ad => ad.url && ad.type);
+
+restartSlider();
+});
+
+/* =========================
+🧮 FORMAT MONNAIE
+========================= */
+function getCurrencyByPhone(phone){
+if(!phone){
+return {
+code:"XOF",
+symbol:"FCFA"
+};
+}
+
+let bestMatch = null;
+
+for(const prefix in currencyMap){
+if(phone.startsWith(prefix)){
+if(!bestMatch || prefix.length > bestMatch.length){
+bestMatch = prefix;
+}
+}
+}
+
+if(bestMatch){
+return currencyMap[bestMatch];
+}
+
+return {
+code:"XOF",
+symbol:"FCFA"
+};
+}
+
+function formatMoney(value, currencyCode, symbol){
+const code =
+currencyCode || "XOF";
+
+const moneySymbol =
+symbol || code;
+
+const amount =
+Number(value || 0);
+
+/*
+🔥 XOF / XAF / GNF / KMF / BIF / DJF :
+souvent utilisés sans décimales dans ton application
+🔥 Les autres devises : 2 décimales
+*/
+const noDecimalCurrencies = [
+"XOF",
+"XAF",
+"GNF",
+"KMF",
+"BIF",
+"DJF"
+];
+
+const decimals =
+noDecimalCurrencies.includes(code) ? 0 : 2;
+
+return amount.toLocaleString(
+"fr-FR",
+{
+minimumFractionDigits:decimals,
+maximumFractionDigits:decimals
+}
+) + " " + moneySymbol;
+}
+
+/* =========================
+💱 CHARGER DEVISES FIREBASE
+========================= */
+onValue(ref(db,"currencies"), snap => {
+const data =
+snap.val() || {};
+
+currencyMap = {};
+
+Object.entries(data).forEach(([prefix,c]) => {
+currencyMap[prefix] = {
+code:c.code || "XOF",
+symbol:c.symbol || c.code || "FCFA",
+country:c.country || "",
+flag:c.flag || ""
+};
+});
+
+console.log("💱 Devises chargées :", currencyMap);
+
+renderHistory();
+});
+
+/* =========================
+👁 TOGGLE HISTORIQUE
+========================= */
+window.toggleHistory = function(){
+historyList.classList.toggle("hidden");
+};
+
+/* =========================
+📜 CHARGER HISTORIQUE
+========================= */
+onValue(ref(db,"history"), snap => {
+const raw =
+snap.val() || {};
+
+let flat = {};
+
+/*
+🔥 Structure attendue :
+history / numéroUtilisateur / idTransaction
+*/
+Object.entries(raw).forEach(([user, txs]) => {
+if(!txs || typeof txs !== "object") return;
+
+Object.entries(txs).forEach(([id, data]) => {
+flat[id] = {
+...data,
+_key:id,
+_user:user
+};
+});
+});
+
+cachedHistory = flat;
+
+renderHistory();
+});
+
+searchInput.addEventListener("input", renderHistory);
+
+/* =========================
+📜 AFFICHER HISTORIQUE
+========================= */
+async function renderHistory(){
+let search =
+searchInput.value.trim().toLowerCase();
+
+let rows = "";
+
+const entries =
+Object.entries(cachedHistory).reverse();
+
+for(const [key,h] of entries){
+
+/*
+🔥 Évite les doublons si l'historique est enregistré
+chez l'expéditeur et destinataire.
+*/
+if(h._user && h.from && h._user !== h.from){
+continue;
+}
+
+let displayID =
+h.customID;
+
+const amount =
+Number(h.amountOriginal ?? h.amountConverted ?? h.amount ?? 0);
+
+const senderCurrency =
+getCurrencyByPhone(h.from || h._user);
+
+if(!displayID){
+displayID =
+"MLP-" +
+Date.now() +
+"-" +
+Math.random()
+.toString(36)
+.substring(2,6)
+.toUpperCase();
+
+await update(
+ref(db,"history/"+h._user+"/"+key),
+{
+customID:displayID
+}
+);
+}
+
+let statusText = "Normal";
+
+let badge =
+`<span class="badge badge-normal">✔ Normal</span>`;
+
+if(h.cancelled){
+statusText = "Annulée";
+badge =
+`<span class="badge badge-cancel">↩ Annulée</span>`;
+}else if(h.claimed){
+statusText = "Réclamation";
+badge =
+`<span class="badge badge-claim">⚠ Réclamation</span>`;
+}
+
+const formattedAmount =
+formatMoney(
+amount,
+senderCurrency.code,
+senderCurrency.symbol
+);
+
+const searchableText =
+[
+displayID,
+h.from,
+h.to,
+amount,
+formattedAmount,
+h.date,
+statusText
+]
+.join(" ")
+.toLowerCase();
+
+if(search && !searchableText.includes(search)){
+continue;
+}
+
+rows += `
+<tr>
+<td>
+<span class="tx-id" onclick="toggleID(this)">
+${displayID}
+</span>
+</td>
+
+<td>${h.from || "-"}</td>
+
+<td>
+<span class="arrow">➜</span>
+</td>
+
+<td>${h.to || "-"}</td>
+
+<td>
+<b>${formattedAmount}</b>
+</td>
+
+<td>${h.date || "Date inconnue"}</td>
+
+<td>${badge}</td>
+
+<td>
+<button onclick="cancelTransaction('${key}','${h._user}')">
+↩ Annuler
+</button>
+
+<button class="btn-danger" onclick="deleteHistory('${key}','${h._user}')">
+🗑 Supprimer
+</button>
+</td>
+</tr>
+`;
+}
+
+historyList.innerHTML = `
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Expéditeur</th>
+<th></th>
+<th>Destinataire</th>
+<th>Montant</th>
+<th>Date</th>
+<th>Statut</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+${
+rows ||
+`
+<tr>
+<td colspan="8">
+<div class="empty-box">
+Aucun résultat trouvé
+</div>
+</td>
+</tr>
+`
+}
+</tbody>
+</table>
+`;
+}
+
+/* =========================
+🗑 SUPPRIMER HISTORIQUE
+========================= */
+window.deleteHistory = async function(id,user){
+if(!confirm("Supprimer cette transaction de l'historique ?")){
+return;
+}
+
+await remove(
+ref(db,"history/"+user+"/"+id)
+);
+
+alert("✅ Historique supprimé");
+};
+
+/* =========================
+↩ ANNULER TRANSACTION
+========================= */
+window.cancelTransaction = async function(historyID,user){
+if(!confirm("Annuler cette transaction et rembourser l'expéditeur ?")){
+return;
+}
+
+const snap =
+await get(ref(db,"history/"+user+"/"+historyID));
+
+const h =
+snap.val();
+
+if(!h){
+alert("❌ Transaction introuvable");
+return;
+}
+
+if(h.cancelled){
+alert("⚠ Transaction déjà annulée");
+return;
+}
+
+const senderSnap =
+await get(ref(db,"users/"+h.from));
+
+const receiverSnap =
+await get(ref(db,"users/"+h.to));
+
+let sender =
+senderSnap.val();
+
+let receiver =
+receiverSnap.val();
+
+if(!sender || !receiver){
+alert("❌ Comptes introuvables");
+return;
+}
+
+const amount =
+Number(h.amountOriginal ?? h.amountConverted ?? h.amount ?? 0);
+
+if(Number(receiver.solde || 0) < amount){
+alert("❌ Le destinataire ne peut pas rembourser ce montant");
+return;
+}
+
+/* 🔥 REMBOURSEMENT */
+receiver.solde =
+Number(receiver.solde || 0) - amount;
+
+sender.solde =
+Number(sender.solde || 0) + amount;
+
+/* 🔥 SAUVEGARDE */
+await update(
+ref(db,"users/"+h.from),
+{
+solde:receiver.solde === undefined ? sender.solde : sender.solde
+}
+);
+
+await update(
+ref(db,"users/"+h.to),
+{
+solde:receiver.solde
+}
+);
+
+await update(
+ref(db,"history/"+user+"/"+historyID),
+{
+cancelled:true,
+claimed:true,
+refundDone:true,
+status:"Annulée"
+});
+
+await push(
+ref(db,"notifications/"+h.from),
+{
+title:"💸 Remboursement reçu",
+phone:h.to,
+amount:amount,
+date:new Date().toLocaleString()
+}
+);
+
+alert("✅ Transaction annulée et argent remboursé");
+};
+
+/* =========================
+🔎 ID EXPAND
+========================= */
+window.toggleID = function(el){
+el.classList.toggle("expanded");
+};
+</script>
+
+</body>
+</html>

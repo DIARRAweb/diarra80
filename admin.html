@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COBRA — Admin Panel</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+background:#000;
+}
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-3;
+overflow:hidden;
+background:#000;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+filter:brightness(0.55);
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:
+linear-gradient(
+135deg,
+rgba(0,0,0,0.65),
+rgba(0,0,0,0.25),
+rgba(0,0,0,0.75)
+);
+z-index:-2;
+}
+
+/* =========================
+🔥 HEADER
+========================= */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+.logo-box{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:bold;
+font-size:21px;
+}
+
+.logo-icon{
+width:40px;
+height:40px;
+border-radius:14px;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+display:flex;
+align-items:center;
+justify-content:center;
+box-shadow:0 8px 20px rgba(255,106,0,0.45);
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* =========================
+🔥 CONTAINER
+========================= */
+.container{
+width:92%;
+max-width:1400px;
+margin:25px auto;
+}
+
+/* =========================
+🔥 TITLE
+========================= */
+.section-title{
+font-size:24px;
+margin:10px 0 22px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:16px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:15px;
+flex-wrap:wrap;
+}
+
+.admin-name{
+font-size:14px;
+color:#ddd;
+font-weight:600;
+}
+
+/* =========================
+🔥 GRID
+========================= */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+/* =========================
+🔥 CARD
+========================= */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:24px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+min-height:170px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.card h3{
+font-size:20px;
+margin-bottom:10px;
+color:#111;
+}
+
+.card p{
+color:#555;
+font-size:14px;
+line-height:1.5;
+font-weight:600;
+}
+
+.card-icon{
+font-size:34px;
+margin-bottom:12px;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:15px;
+font-weight:bold;
+font-size:15px;
+cursor:pointer;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+transition:0.3s;
+box-shadow:0 8px 20px rgba(255,90,0,0.25);
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 28px rgba(255,90,0,0.35);
+}
+
+.logout-btn{
+background:crimson;
+box-shadow:0 8px 20px rgba(220,20,60,0.25);
+}
+
+.logout-btn:hover{
+box-shadow:0 12px 28px rgba(220,20,60,0.35);
+}
+
+/* =========================
+🔥 AUDIO BUTTON
+========================= */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:1px solid rgba(255,255,255,0.15);
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+backdrop-filter:blur(10px);
+}
+
+/* =========================
+🔥 FOOTER
+========================= */
+.footer-note{
+margin-top:25px;
+color:white;
+text-align:center;
+font-size:14px;
+background:rgba(0,0,0,0.45);
+padding:14px;
+border-radius:16px;
+backdrop-filter:blur(10px);
+}
+
+/* =========================
+🔥 RESPONSIVE
+========================= */
+@media(max-width:700px){
+body{
+padding-top:82px;
+}
+
+.logo-box{
+font-size:17px;
+}
+
+.logo-icon{
+width:36px;
+height:36px;
+}
+
+.section-title{
+font-size:19px;
+}
+
+.card{
+min-height:155px;
+}
+
+.card h3{
+font-size:18px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline muted></video>
+<img id="bgImage" alt="">
+</div>
+<div class="hero-overlay"></div>
+
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<!-- =========================
+🔥 HEADER
+========================= -->
+<header>
+<div class="logo-box">
+<div class="logo-icon">🛡</div>
+<div>COBRA — Admin</div>
+</div>
+
+<div class="live-box">
+<div class="live-dot"></div>
+SÉCURISÉ
+</div>
+</header>
+
+<!-- =========================
+🔥 CONTENT
+========================= -->
+<div class="container">
+
+<h2 class="section-title">
+<span>⚙️ Tableau de bord administrateur</span>
+<span class="admin-name" id="adminName">Admin connecté</span>
+</h2>
+
+<main class="grid">
+
+<div class="card">
+<div>
+<div class="card-icon">👥</div>
+<h3>Utilisateurs & Agents</h3>
+<p>Créer, modifier, bloquer, débloquer les utilisateurs et gérer les agents.</p>
+</div>
+<button onclick="location.href='users.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">📜</div>
+<h3>Historique</h3>
+<p>Consulter les transactions, les dépôts, les retraits et les annulations.</p>
+</div>
+<button onclick="location.href='history.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">🚨</div>
+<h3>Réclamations</h3>
+<p>Voir les plaintes, erreurs de transfert et demandes des utilisateurs.</p>
+</div>
+<button onclick="location.href='claims.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">🤖</div>
+<h3>Auto-Pilot</h3>
+<p>Gérer les contrôles automatiques et les règles intelligentes du système.</p>
+</div>
+<button onclick="location.href='autopilot.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">💰</div>
+<h3>Trésorerie</h3>
+<p>Suivre les commissions nationales, internationales et le fonds de soutien.</p>
+</div>
+<button onclick="location.href='treasury.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">🖼️</div>
+<h3>Gestion des arrière-plans</h3>
+<p>Ajouter ou supprimer les images et vidéos affichées sur les pages.</p>
+</div>
+<button onclick="location.href='pub.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">💱</div>
+<h3>Gestion des devises</h3>
+<p>Ajouter les devises, symboles, pays, indicatifs et drapeaux.</p>
+</div>
+<button onclick="location.href='currencies.html'">Ouvrir</button>
+</div>
+
+<div class="card">
+<div>
+<div class="card-icon">📊</div>
+<h3>Money Monitor</h3>
+<p>Suivre l’argent total en circulation dans tout le système.</p>
+</div>
+<button onclick="location.href='money-monitor.html'">Ouvrir</button>
+</div>
+
+
+<div class="card">
+<div>
+<div class="card-icon"></div>
+<h3>Service Assistence</h3>
+<p>Au côté des utilisateurs 24h/24.</p>
+</div>
+<button onclick="location.href='service-appel.html'">Ouvrir</button>
+</div>
+
+
+
+<button onclick="window.location.href='carte.html'">
+  Gestion des cartes
+</button>
+
+
+
+
+<div class="card">
+<div>
+<div class="card-icon">🚪</div>
+<h3>Sécurité</h3>
+<p>Fermer la session administrateur et revenir à la page de connexion.</p>
+</div>
+<button onclick="logout()" class="logout-btn">Déconnexion</button>
+</div>
+
+</main>
+
+<div class="footer-note">
+<strong>MALI WARI 🇲🇱</strong> — Administration sécurisée • Données protégées • COBRA actif
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+onValue
+} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+
+/* =========================
+🔥 FIREBASE
+========================= */
+const firebaseConfig = {
+apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+authDomain: "securite-53ada.firebaseapp.com",
+databaseURL: "https://securite-53ada-default-rtdb.firebaseio.com",
+projectId: "securite-53ada",
+storageBucket: "securite-53ada.firebasestorage.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* =========================
+🔐 PROTECTION ADMIN
+========================= */
+const loggedUser =
+JSON.parse(localStorage.getItem("loggedUser") || "null");
+
+if(!loggedUser || loggedUser.role !== "admin"){
+window.location.href = "index.html";
+}
+
+const adminName =
+document.getElementById("adminName");
+
+if(loggedUser && loggedUser.name){
+adminName.innerText =
+"Connecté : " + loggedUser.name;
+}
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+const video =
+document.getElementById("bgVideo");
+
+const image =
+document.getElementById("bgImage");
+
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+let mediaList = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97",
+duration:10
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4",
+duration:10
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+function switchMedia(){
+if(!mediaList.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = mediaList[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+
+const duration =
+Number(ad.duration || video.duration || 10);
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % mediaList.length;
+switchMedia();
+}, duration * 1000);
+};
+
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+Number(ad.duration || 10);
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % mediaList.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+switchMedia();
+
+/* =========================
+📡 ADS FIREBASE
+========================= */
+onValue(ref(db,"ads"), snap => {
+const data = snap.val();
+
+if(!data) return;
+
+mediaList =
+Object.values(data)
+.filter(ad => ad.url && ad.type);
+
+if(mediaList.length > 0){
+restartSlider();
+}
+});
+
+/* =========================
+🚪 LOGOUT
+========================= */
+window.logout = function(){
+localStorage.removeItem("loggedUser");
+localStorage.removeItem("loggedAgent");
+window.location.href = "index.html";
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin Utilisateurs — COBRA</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body {
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+}
+
+/* 🔥 BACKGROUND */
+#bg-video{
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+filter:brightness(1);
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.1);
+z-index:-1;
+}
+
+/* 🔥 HEADER */
+.header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+font-size:20px;
+font-weight:bold;
+z-index:999;
+}
+
+body{ padding-top:70px; }
+
+/* 🔥 CARD */
+.card{
+max-width:1100px;
+margin:20px auto;
+background:rgba(255,255,255,0.95);
+padding:18px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(20px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+/* 🔥 INPUT */
+input{
+width:100%;
+padding:12px;
+border-radius:12px;
+border:1px solid #ddd;
+margin-top:8px;
+font-size:14px;
+}
+
+/* 🔥 BOUTON */
+button{
+padding:12px;
+border-radius:12px;
+border:none;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+/* 🔥 TABLE */
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+background:white;
+border-radius:15px;
+overflow:hidden;
+}
+
+th{
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+padding:12px;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+
+tr:hover{
+background:#fff3e0;
+}
+
+.avatar{
+width:45px;
+height:45px;
+border-radius:50%;
+object-fit:cover;
+}
+
+/* 🔥 STATUS */
+.status-active{color:#00c853;font-weight:bold;}
+.status-frozen{color:red;font-weight:bold;}
+
+.search-bar{
+position:fixed;
+top:70px;
+left:50%;
+transform:translateX(-50%);
+width:90%;
+max-width:900px;
+z-index:999;
+}
+
+.search-bar input{
+width:100%;
+padding:14px;
+border-radius:20px;
+border:none;
+outline:none;
+font-size:15px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+transition:0.3s;
+}
+
+.search-bar input:focus{
+transform:scale(1.03);
+}
+
+body{ padding-top:130px; }
+
+input::placeholder{
+color:#999;
+}
+
+.card h3{
+color:#ff6a00;
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+.btn-back{
+background: linear-gradient(45deg,#222,#444);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.search-bar input{
+background:rgba(255,255,255,0.95);
+border:2px solid transparent;
+}
+
+.search-bar input:focus{
+border:2px solid #ff6a00;
+box-shadow:0 0 20px rgba(255,106,0,0.5);
+}
+
+.hidden{
+display:none;
+}
+
+.hero-wall {
+position: fixed;
+inset: 0;
+z-index: -2;
+overflow: hidden;
+}
+
+.hero-wall video,
+.hero-wall img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+.hero-overlay {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.2); /* léger */
+z-index:-1;
+}
+
+.audio-btn {
+position: fixed;
+bottom: 15px;
+right: 15px;
+z-index: 10;
+background: rgba(0,0,0,0.35);
+border-radius: 50%;
+width: 42px;
+height: 42px;
+color: white;
+cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">👥 COBRA — Gestion Utilisateurs</div>
+
+<div class="search-bar" style="display:flex;gap:10px;align-items:center;">
+<select id="searchType" style="padding:12px;border-radius:12px;">
+<option value="users">👤 Utilisateurs</option>
+<option value="agents">👨‍💼 Agents</option>
+</select>
+
+<input id="searchUser" placeholder="🔎 Rechercher...">
+</div>
+</div>
+
+<!-- ================= AGENT ================= -->
+
+<!-- ================= AJOUT AGENT ================= -->
+<div class="card">
+<div onclick="toggleAgentForm()" style="cursor:pointer;font-weight:bold;font-size:18px;text-align:center;">
+👨‍💼 Ajouter un agent ⬇
+</div>
+
+<div id="agentForm" style="display:none;margin-top:15px;">
+<input id="agentName" placeholder="Nom complet">
+<input id="agentDob" type="date">
+<input id="agentBirthPlace" placeholder="Lieu de naissance">
+<input id="agentNationality" placeholder="Nationalité">
+<input id="agentIdCard" placeholder="Numéro carte identité / NINA">
+<input id="agentPhone" type="tel" placeholder="Numéro téléphone">
+<p id="agentCountryInfo" style="font-weight:bold;color:#555;margin-top:8px;"></p>
+<input id="agentPass" placeholder="Mot de passe">
+<input id="agentSolde" type="number" placeholder="Solde initial">
+<input id="agentPlafond" type="number" placeholder="Plafond activité (ex: 100000)">
+
+<h4>📸 Photo agent (obligatoire)</h4>
+<input type="file" id="agentPhoto" accept="image/*">
+
+<button onclick="addAgent()">Créer agent</button>
+<p id="agentMsg"></p>
+</div>
+</div>
+
+<!-- ================= LISTE AGENTS ================= -->
+<div class="card">
+<h3>👨‍💼 Liste des agents</h3>
+
+<button id="toggleAgentBtn" onclick="toggleAgentList()">
+👁 Afficher la liste
+</button>
+
+<div id="agentBox" class="hidden" style="overflow:auto;">
+<table style="min-width:900px;">
+<thead>
+<tr>
+<th>Photo</th>
+<th>Nom</th>
+<th>Numéro</th>
+<th>Solde Local</th>
+<th>Solde XOF</th>
+<th>Solde / Plafond</th>
+<th>Statut</th>
+<th>Dépôt</th>
+<th>Retrait</th>
+<th>Sécurité</th>
+<th>PDF</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="agentTable"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<div onclick="toggleForm()" style="cursor:pointer;font-weight:bold;font-size:18px;text-align:center;">
+➕ Ajouter un utilisateur ⬇
+</div>
+
+<div id="formBox" style="display:none;margin-top:15px;">
+
+<input id="newName" placeholder="Nom complet">
+<input id="newDob" type="date" placeholder="Date de naissance">
+<input id="newBirthPlace" placeholder="Lieu de naissance">
+<input id="newNationality" placeholder="Nationalité">
+<input id="newIdCard" placeholder="Numéro carte identité / NINA">
+<input id="newPhone" placeholder="Numéro téléphone">
+<p id="countryInfo"></p>
+<input id="newPass" placeholder="Mot de passe">
+<input id="newSolde" type="number" placeholder="Solde initial">
+<h4>📸 Photo utilisateur (obligatoire)</h4>
+
+<input type="file" id="photoFile" accept="image/*">
+
+<button type="button" onclick="openCamera()">📷 Prendre photo</button>
+
+<video id="camera" class="hidden" autoplay></video>
+<canvas id="canvas" class="hidden"></canvas>
+
+<img id="previewPhoto" class="avatar hidden">
+
+<button onclick="addUser()">Créer utilisateur</button>
+<p id="addMsg"></p>
+</div>
+
+<div class="card">
+<h3>📋 Liste des utilisateurs</h3>
+<button id="toggleBtn" class="gray" onclick="toggleUserList()">
+👁 Afficher la liste
+</button>
+
+<div id="userBox" class="hidden" style="overflow:auto;">
+<table style="min-width:900px;">
+<thead>
+<tr>
+<th>Photo</th>
+<th>Nom</th>
+<th>Numéro</th>
+<th>Solde Local</th>
+<th>Solde XOF</th>
+<th>Statut</th>
+<th>Dépôt</th>
+<th>Retrait</th>
+<th>Sécurité</th>
+<th>PDF</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="userTable"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<button onclick="location.href='admin.html'" class="btn-back">
+⬅ Retour
+</button>
+</div>
+
+<!-- BACKGROUND DYNAMIQUE -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage">
+</div>
+
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<div class="hero-overlay"></div>
+
+<div id="userModal" style="
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+">
+<div style="
+background:white;
+padding:20px;
+border-radius:20px;
+width:90%;
+max-width:400px;
+text-align:center;
+">
+<img id="modalPhoto" style="width:100px;height:100px;border-radius:50%;">
+<h3 id="modalName"></h3>
+<p id="modalPhone"></p>
+<p id="modalSolde"></p>
+<p id="modalStatus"></p>
+<button onclick="closeModal()">Fermer</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import { getDatabase, ref, get, set, update, remove, onValue }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
+
+// 🔥 CONFIG COMPLETE
+const firebaseConfig = {
+  apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+  authDomain: "securite-53ada.firebaseapp.com",
+  databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+  projectId: "securite-53ada",
+  storageBucket: "securite-53ada.firebasestorage.app",// ✅ TRÈS IMPORTANT
+  appId: "1:675532854623:web:4d0ada89aa82b9632852ea"// (optionnel mais propre)
+};
+
+// 🚀 INITIALISATION
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+// 📸 variable globale image
+let selectedFile = null;
+
+// 📂 IMPORT IMAGE
+document.getElementById("photoFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  selectedFile = file;
+
+  // preview
+  const preview = document.getElementById("previewPhoto");
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove("hidden");
+});
+
+// 📷 CAMERA
+window.openCamera = async function () {
+  const video = document.getElementById("camera");
+  video.classList.remove("hidden");
+
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  setTimeout(() => {
+    const canvas = document.getElementById("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+      selectedFile = new File([blob], "camera.jpg", { type: "image/jpeg" });
+
+      const preview = document.getElementById("previewPhoto");
+      preview.src = URL.createObjectURL(blob);
+      preview.classList.remove("hidden");
+
+      stream.getTracks().forEach(t => t.stop());
+      video.classList.add("hidden");
+    });
+  }, 2000);
+};
+
+const userBox = document.getElementById("userBox");
+const toggleBtn = document.getElementById("toggleBtn");
+const searchInput = document.getElementById("searchUser");
+const table = document.getElementById("userTable");
+
+/* 🔥 RECHERCHE TEMPS RÉEL */
+searchInput.addEventListener("input", () => {
+const value = searchInput.value.trim();
+const type = document.getElementById("searchType").value;
+
+// ===== USERS =====
+if(type === "users"){
+if(userBox.classList.contains("hidden")){
+userBox.classList.remove("hidden");
+toggleBtn.innerText = "🙈 Masquer la liste";
+}
+loadUsers();
+}
+
+// ===== AGENTS =====
+if(type === "agents"){
+if(agentBox.classList.contains("hidden")){
+agentBox.classList.remove("hidden");
+toggleAgentBtn.innerText = "🙈 Masquer la liste";
+}
+loadAgents();
+}
+});
+
+const phoneInput = document.querySelector("#newPhone");
+const countryInfo = document.getElementById("countryInfo");
+const iti = window.intlTelInput(phoneInput,{
+initialCountry:"ml",
+separateDialCode:true,
+utilsScript:"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+});
+
+/* =========================
+📱 AGENT PHONE INPUT
+========================= */
+const agentPhoneInput =
+document.querySelector("#agentPhone");
+
+const agentCountryInfo =
+document.getElementById("agentCountryInfo");
+
+const agentIti =
+window.intlTelInput(agentPhoneInput,{
+initialCountry:"ml",
+separateDialCode:true,
+utilsScript:
+"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+});
+
+agentPhoneInput.addEventListener("countrychange",()=>{
+const c = agentIti.getSelectedCountryData();
+
+agentCountryInfo.innerText =
+"Pays : " + c.name + " (+" + c.dialCode + ")";
+});
+
+agentPhoneInput.addEventListener("input",()=>{
+const c = agentIti.getSelectedCountryData();
+
+if(c && c.name){
+agentCountryInfo.innerText =
+"Pays : " + c.name + " (+" + c.dialCode + ")";
+}
+});
+
+phoneInput.addEventListener("countrychange",()=>{
+const c = iti.getSelectedCountryData();
+countryInfo.innerText = "Pays : "+c.name+" (+"+c.dialCode+")";
+});
+
+let currencyMap = {};
+let rateToXOF = {};
+
+function detectCurrency(phone){
+
+const prefixes =
+Object.keys(currencyMap)
+.sort((a,b)=> b.length - a.length);
+
+for(const prefix of prefixes){
+if(phone.startsWith(prefix)){
+return currencyMap[prefix];
+}
+}
+
+return "XOF";
+}
+
+window.toggleUserList = ()=>{
+const isHidden = userBox.classList.contains("hidden");
+
+if(isHidden){
+userBox.classList.remove("hidden");
+loadUsers();
+toggleBtn.innerText = "🙈 Masquer la liste";
+}else{
+userBox.classList.add("hidden");
+toggleBtn.innerText = "👁 Afficher la liste";
+}
+};
+
+window.loadUsers = async () => {
+
+const search = document.getElementById("searchUser").value.trim();
+
+const snap = await get(ref(db,"users"));
+
+if(!snap.exists()){
+table.innerHTML = "<tr><td colspan='11'>Aucun utilisateur</td></tr>";
+return;
+}
+
+table.innerHTML = "";
+
+snap.forEach(child => {
+
+const u = child.val();
+const phone = child.key;
+
+if(search){
+const text = (u.name + phone).toLowerCase();
+if(!text.includes(search.toLowerCase())) return;
+}
+
+const currency = u.currency || "XOF";
+const solde = u.solde ?? 0;
+const soldeXOF = solde * (rateToXOF[currency] || 1);
+
+table.innerHTML += `
+<tr>
+<td>
+<img src="${u.photo}" class="avatar"
+onclick='openUser(${JSON.stringify(u)},"${phone}")'
+style="cursor:pointer;">
+</td>
+<td>${u.name || "-"}</td>
+<td>${phone}</td>
+<td>${solde} ${currency}</td>
+<td>${soldeXOF.toFixed(2)} XOF</td>
+<td class="${u.frozen ? "status-frozen" : "status-active"}">
+${u.frozen ? "Gelé" : "Actif"}
+</td>
+
+<td><button onclick="deposit('${phone}')">➕</button></td>
+
+<td><button onclick="withdraw('${phone}')">➖</button></td>
+
+<td>
+<button onclick="toggleFreeze('${phone}')" class="gray">
+${u.frozen ? "Dégeler" : "Geler"}
+</button>
+<button onclick="resetPassword('${phone}')">🔐</button>
+</td>
+
+<td><button onclick="generatePDF('${phone}')">📄</button></td>
+
+<td><button onclick="deleteUser('${phone}')" style="background:crimson;">🗑</button></td>
+
+</tr>`;
+});
+
+};
+
+window.deposit = async phone=>{
+const amount = parseFloat(prompt("Montant dépôt :"));
+if(isNaN(amount)||amount<=0) return;
+
+const snap = await get(ref(db,"users/"+phone));
+let u = snap.val();
+
+u.solde = (u.solde||0) + amount;
+
+await update(ref(db,"users/"+phone),{solde:u.solde});
+
+// 🔥 ENREGISTRER TRANSACTION
+const id = "trans_" + Date.now();
+
+await set(ref(db,"transactions/"+id),{
+phone: phone,
+type: "Depot",
+amount: amount,
+date: new Date().toLocaleString(),
+status: "OK"
+});
+
+loadUsers();
+}
+
+window.withdraw = async phone=>{
+const amount = parseFloat(prompt("Montant retrait :"));
+if(isNaN(amount)||amount<=0) return;
+
+const snap = await get(ref(db,"users/"+phone));
+let u = snap.val();
+
+if(amount > u.solde){
+alert("❌ Solde insuffisant !");
+return;
+}
+
+u.solde -= amount;
+
+await update(ref(db,"users/"+phone),{solde:u.solde});
+
+// 🔥 ENREGISTRER TRANSACTION
+const id = "trans_" + Date.now();
+
+await set(ref(db,"transactions/"+id),{
+phone: phone,
+type: "Retrait",
+amount: -amount,
+date: new Date().toLocaleString(),
+status: "OK"
+});
+
+loadUsers();
+}
+
+window.toggleFreeze=async phone=>{
+const snap=await get(ref(db,"users/"+phone));
+let u=snap.val();
+u.frozen=!u.frozen;
+await update(ref(db,"users/"+phone),{frozen:u.frozen});
+loadUsers();
+};
+
+window.resetPassword=async phone=>{
+const pass=prompt("Nouveau mot de passe :");
+if(!pass||pass.length<4) return;
+await update(ref(db,"users/"+phone),{password:pass});
+alert("Mot de passe modifié");
+};
+
+window.deleteUser=async phone=>{
+if(confirm("Supprimer cet utilisateur ?")){
+await remove(ref(db,"users/"+phone));
+loadUsers();
+}
+};
+
+window.addUser = async () => {
+  try {
+    const name = newName.value.trim();
+    const dob = newDob.value;
+    const birthPlace = newBirthPlace.value.trim();
+    const nationality = newNationality.value.trim();
+    const idCard = newIdCard.value.trim();
+    const phone = iti.getNumber();
+    const password = newPass.value.trim();
+    const solde = parseFloat(newSolde.value);
+    const msg = addMsg;
+
+    // ✅ Vérification champs
+    if (!name || !phone || !password || isNaN(solde)) {
+      msg.innerText = "❌ Remplis tous les champs";
+      return;
+    }
+
+    if (!selectedFile) {
+      msg.innerText = "❌ Ajoute une photo";
+      return;
+    }
+
+    msg.innerText = "⏳ Création en cours...";
+
+    // ✅ Vérifie si existe
+    const exists = await get(ref(db, "users/" + phone));
+    if (exists.exists()) {
+      msg.innerText = "❌ Numéro déjà utilisé";
+      return;
+    }
+
+    const currency = detectCurrency(phone);
+
+    // 🔥 Upload image
+    const storageRef = sRef(storage, "users/" + phone + "_" + selectedFile.name);
+    await uploadBytes(storageRef, selectedFile);
+
+    const photoURL = await getDownloadURL(storageRef);
+
+    // 🔥 Enregistrer utilisateur
+    await set(ref(db, "users/" + phone), {
+      name,
+      dob,
+      birthPlace,
+      nationality,
+      idCard,
+      phone,
+      password,
+      solde,
+      currency,
+      photo: photoURL,
+      frozen: false,
+      createdAt: new Date().toLocaleString()
+    });
+
+    // ✅ Succès
+    msg.innerText = "✅ Utilisateur ajouté";
+
+    // 🔄 Reset
+    document.querySelectorAll(".card input").forEach(i => i.value = "");
+    countryInfo.innerText = "";
+    selectedFile = null;
+
+    document.getElementById("previewPhoto").classList.add("hidden");
+
+    loadUsers();
+
+  } catch (error) {
+  console.error(error);
+  addMsg.innerText = "❌ Erreur: " + error.message;
+  }
+};
+
+
+window.generatePDF = async function(phone, type="user"){
+
+  console.log("PDF lancé pour :", phone);
+
+// ================= USER =================
+const path = type === "agent" ? "agents/" : "users/";
+const snap = await get(ref(db, path + phone));
+if(!snap.exists()) return alert(type === "agent" ? "Agent introuvable" : "Utilisateur introuvable");
+
+const u = snap.val();
+// 🔥 ID CLIENT AUTOMATIQUE
+const clientId = "MM-" + phone.replace("+","").slice(-8);
+
+// ================= HISTORIQUE =================
+const transSnap = await get(ref(db,"transactions"));
+let history = [];
+
+if(transSnap.exists()){
+transSnap.forEach(child=>{
+const t = child.val();
+if(t.phone === phone){
+history.push(t);
+}
+});
+}
+
+// Trier du plus récent
+history = history.reverse();
+
+// ================= PDF =================
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF("p","mm","a4");
+
+// ================= HEADER =================
+// 🔥 HEADER ULTRA PRO
+doc.setFillColor(255,90,0);
+doc.rect(0,0,210,35,"F");
+
+// 🔥 LIGNE BLANCHE DESIGN
+doc.setDrawColor(255,255,255);
+doc.setLineWidth(0.5);
+doc.line(0,30,210,30);
+
+// 🔥 LOGO FIREBASE (FIX BUG)
+const logo = new Image();
+
+await new Promise(resolve => {
+logo.onload = function () {
+doc.addImage(logo, "PNG", 10, 5, 25, 25);
+resolve();
+};
+
+logo.onerror = function () {
+console.log("❌ Logo non chargé");
+resolve();
+};
+
+logo.src = "money.png";
+});
+
+// 🔥 NOM APP
+doc.setTextColor(255,255,255);
+doc.setFontSize(16);
+doc.text("MA MONEY",40,18);
+
+// 🔥 TITRE
+doc.setFontSize(13);
+doc.text("FICHE UTILISATEUR",140,18);
+
+// ================= PHOTO =================
+if(u.photo){
+try{
+
+const response = await fetch(u.photo);
+const blob = await response.blob();
+
+const reader = new FileReader();
+
+await new Promise(resolve => {
+reader.onloadend = function(){
+
+doc.addImage(reader.result,'JPEG',15,40,40,40);
+
+// cercle design
+doc.setDrawColor(255,90,0);
+doc.circle(35,60,22);
+
+resolve();
+};
+
+reader.readAsDataURL(blob);
+});
+
+}catch(e){
+console.log("❌ Photo erreur :", e);
+}
+}
+
+
+// 🔥 CADRE PROFIL
+doc.setDrawColor(255,90,0);
+doc.rect(10,35,190,60);
+
+// ================= INFOS =================
+// 🔥 NOM UTILISATEUR (GRAND)
+doc.setFontSize(18);
+doc.setTextColor(0,0,0);
+doc.text(u.name || "-",70,45);
+
+// 🔥 ID CLIENT (EN ORANGE)
+doc.setFontSize(12);
+doc.setTextColor(255,90,0);
+doc.text("ID Client : " + clientId,70,55);
+
+// 🔥 INFOS (NOIR)
+doc.setFontSize(11);
+doc.setTextColor(0,0,0);
+
+doc.text("Téléphone : " + phone,70,63);
+doc.text("Statut : " + (u.frozen ? "Gelé" : "Actif"),70,71);
+
+
+// ================= QR CODE =================
+try{
+const qrCanvas = document.createElement("canvas");
+
+if(typeof QRCode !== "undefined"){
+await QRCode.toCanvas(qrCanvas, clientId);
+const qrData = qrCanvas.toDataURL("image/png");
+doc.addImage(qrData, 'PNG', 155, 40, 35, 35);
+}else{
+console.log("QR non chargé");
+}
+}catch(e){
+console.log("Erreur QR :", e);
+}
+// ================= SECTIONS =================
+let y = 110;
+
+// 🔶 INFOS PERSONNELLES
+doc.setFillColor(255,90,0);
+doc.rect(10,y-6,190,8,"F");
+
+doc.setTextColor(255,255,255);
+doc.text("INFORMATIONS PERSONNELLES",12,y);
+
+doc.setTextColor(0,0,0);
+y+=8;
+
+doc.text("Nom : "+(u.name||"-"),12,y); y+=6;
+doc.text("Naissance : "+(u.dob||"-"),12,y); y+=6;
+doc.text("Lieu : "+(u.birthPlace||"-"),12,y); y+=6;
+doc.text("Nationalité : "+(u.nationality||"-"),12,y); y+=6;
+doc.text("Identifiant : "+(u.idCard||"-"),12,y);
+
+// 🔶 FINANCES
+y+=10;
+
+doc.setFillColor(255,90,0);
+doc.rect(10,y-6,190,8,"F");
+
+doc.setTextColor(255,255,255);
+doc.text("INFORMATIONS FINANCIÈRES",12,y);
+
+doc.setTextColor(0,0,0);
+y+=8;
+
+doc.setFontSize(14);
+doc.text(u.solde+" "+u.currency,12,y);
+
+y+=6;
+doc.setFontSize(10);
+doc.text("Statut compte : "+(u.frozen ? "Gelé" : "Actif"),12,y);
+
+// 🔶 HISTORIQUE RÉEL 🔥
+y += 12;
+
+doc.setFillColor(255,90,0);
+doc.rect(10,y-6,190,8,"F");
+
+doc.setTextColor(255,255,255);
+doc.text("ACTIVITÉ RÉCENTE",12,y);
+
+doc.setTextColor(0,0,0);
+y+=8;
+
+// entête
+// entête avec fond
+doc.setFillColor(245,245,245);
+doc.roundedRect(10,y-5,190,8,2,2,"F");
+
+doc.setTextColor(0,0,0);
+doc.text("Date",12,y);
+doc.text("Type",80,y);
+doc.text("Montant",140,y);
+
+y+=6;
+
+// données
+doc.setFontSize(9);
+
+history.slice(0,5).forEach(t=>{
+
+doc.text(t.date || "-",12,y);
+doc.text(t.type || "-",80,y);
+
+// 🔥 COULEUR MONTANT
+if(t.amount >= 0){
+doc.setTextColor(0,150,0);
+doc.text("+"+t.amount,140,y);
+}else{
+doc.setTextColor(200,0,0);
+doc.text(String(t.amount),140,y);
+}
+
+// 🔥 RESET COULEUR
+doc.setTextColor(0,0,0);
+
+// 🔥 ESPACE ENTRE LIGNES
+y += 7;
+
+});
+
+// 🔥 LIGNE SÉPARATRICE
+doc.setDrawColor(200,200,200);
+doc.line(10,y,200,y);
+
+// ================= FOOTER =================
+doc.setFontSize(10);
+
+// 🔥 DOUBLE LIGNE DESIGN
+doc.setDrawColor(255,90,0);
+doc.setLineWidth(0.6);
+doc.line(10,265,200,265);
+
+// 🔥 LIGNE FINE EN DESSOUS
+doc.setDrawColor(200,200,200);
+doc.setLineWidth(0.3);
+doc.line(10,268,200,268);
+
+doc.text("Document généré par MA MONEY",12,280);
+// 🔥 SIGNATURE
+doc.setFontSize(12);
+doc.text("Signature électronique :",140,270);
+
+doc.setFont("courier","italic");
+doc.text("MALI WARI System",140,278);
+
+// ================= SAVE =================
+doc.setFontSize(10);
+doc.text("Date : " + new Date().toLocaleString(),150,280);
+
+doc.save("fiche_"+phone+".pdf");
+
+};
+
+window.openUser = function(u, phone){
+document.getElementById("userModal").style.display = "flex";
+modalPhoto.src = u.photo || "";
+modalName.innerText = u.name;
+modalPhone.innerText = phone;
+modalSolde.innerText = "Solde: "+u.solde+" "+u.currency;
+modalStatus.innerText = u.frozen ? "🔴 Gelé" : "🟢 Actif";
+}
+
+window.closeModal = function(){
+document.getElementById("userModal").style.display = "none";
+}
+
+window.toggleForm = function(){
+const box = document.getElementById("formBox");
+box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+// ================= AGENT FORM =================
+window.toggleAgentForm = function(){
+const box = document.getElementById("agentForm");
+box.style.display = box.style.display === "none" ? "block" : "none";
+};
+
+// ===== TOGGLE LISTE AGENTS =====
+const agentBox = document.getElementById("agentBox");
+const toggleAgentBtn = document.getElementById("toggleAgentBtn");
+
+window.toggleAgentList = ()=>{
+const isHidden = agentBox.classList.contains("hidden");
+
+if(isHidden){
+agentBox.classList.remove("hidden");
+loadAgents();
+toggleAgentBtn.innerText = "🙈 Masquer la liste";
+}else{
+agentBox.classList.add("hidden");
+toggleAgentBtn.innerText = "👁 Afficher la liste";
+}
+};
+
+/* 🔥 AUTO LOAD */
+loadUsers();
+
+// ================= AGENTS =================
+
+// ajouter agent
+window.addAgent = async function(){
+
+const name = document.getElementById("agentName").value.trim();
+const dob = document.getElementById("agentDob").value;
+const birthPlace = document.getElementById("agentBirthPlace").value.trim();
+const nationality = document.getElementById("agentNationality").value.trim();
+const idCard = document.getElementById("agentIdCard").value.trim();
+const phone = agentIti.getNumber();
+const password = document.getElementById("agentPass").value.trim();
+const solde = parseFloat(document.getElementById("agentSolde").value);
+const plafond = parseFloat(document.getElementById("agentPlafond").value);
+const file = document.getElementById("agentPhoto").files[0];
+const msg = document.getElementById("agentMsg");
+
+if(!agentIti.isValidNumber()){
+msg.innerText = "❌ Numéro agent invalide";
+return;
+}
+
+if(!name || !phone || !password || !file || isNaN(solde) || isNaN(plafond)){
+msg.innerText = "❌ Remplis tous les champs";
+return;
+}
+
+msg.innerText = "⏳ Création agent...";
+
+try{
+
+// vérifier si existe
+const exist = await get(ref(db,"agents/"+phone));
+if(exist.exists()){
+msg.innerText = "❌ Agent existe déjà";
+return;
+}
+
+// upload image
+const storageRef = sRef(storage,"agents/"+phone+"_"+file.name);
+await uploadBytes(storageRef,file);
+const photoURL = await getDownloadURL(storageRef);
+
+// enregistrer agent
+await set(ref(db,"agents/"+phone),{
+name,
+dob,
+birthPlace,
+nationality,
+idCard,
+phone,
+password,
+solde: solde,
+plafond: plafond,
+currency: detectCurrency(phone),
+photo: photoURL,
+frozen:false,
+createdAt:new Date().toLocaleString()
+});
+
+msg.innerText = "✅ Agent créé";
+
+// reset
+document.querySelectorAll("#agentForm input").forEach(i=>i.value="");
+
+// reload liste
+loadAgents();
+
+}catch(e){
+console.error(e);
+msg.innerText = "❌ Erreur";
+}
+};
+
+// afficher agents
+window.loadAgents = async function(){
+const table = document.getElementById("agentTable");
+const search = document.getElementById("searchUser").value.trim().toLowerCase();
+
+const snap = await get(ref(db,"agents"));
+
+if(!snap.exists()){
+table.innerHTML = "<tr><td colspan='11'>Aucun agent</td></tr>";
+return;
+}
+
+table.innerHTML = "";
+
+snap.forEach(child=>{
+const a = child.val();
+const phone = child.key;
+
+// 🔍 FILTRE
+if(search){
+const text =
+(
+(a.name || "") +
+phone +
+(a.currency || "") +
+(a.nationality || "")
+).toLowerCase();
+if(!text.includes(search)) return;
+}
+
+const currency = a.currency || "XOF";
+const solde = a.solde || 0;
+const soldeXOF = solde * (rateToXOF[currency] || 1);
+const plafond = Number(a.plafond || 0);
+const plafondRestant = plafond - solde;
+
+table.innerHTML += `
+<tr>
+<td><img src="${a.photo}" class="avatar"></td>
+<td>${a.name}</td>
+<td>${phone}</td>
+<td>${solde} ${currency}</td>
+<td>${soldeXOF.toFixed(2)} XOF</td>
+<td>
+${solde.toLocaleString()} / ${plafond.toLocaleString()} ${currency}
+<br>
+<small>
+${plafondRestant > 0
+? "Reste avant plafond : " + plafondRestant.toLocaleString() + " " + currency
+: "Plafond atteint"}
+</small>
+<br>
+<button onclick="changeAgentPlafond('${phone}')">
+✏️ Modifier
+</button>
+</td>
+<td class="${a.frozen ? "status-frozen" : "status-active"}">
+${a.frozen ? "Gelé" : "Actif"}
+</td>
+
+<td><button onclick="depositAgent('${phone}')">➕</button></td>
+<td><button onclick="withdrawAgent('${phone}')">➖</button></td>
+
+<td>
+<button onclick="toggleFreezeAgent('${phone}')">
+${a.frozen ? "Dégeler" : "Geler"}
+</button>
+<button onclick="resetPasswordAgent('${phone}')">🔐</button>
+</td>
+
+<td><button onclick="generatePDFAgent('${phone}')">📄</button></td>
+
+<td>
+<button onclick="deleteAgent('${phone}')" style="background:crimson;">🗑</button>
+</td>
+</tr>
+`;
+});
+};
+
+/* =========================
+✏️ MODIFIER PLAFOND AGENT
+========================= */
+window.changeAgentPlafond = async function(phone){
+
+const snap =
+await get(ref(db,"agents/"+phone));
+
+if(!snap.exists()){
+alert("❌ Agent introuvable");
+return;
+}
+
+const agent =
+snap.val();
+
+const oldPlafond =
+Number(agent.plafond || 0);
+
+const newPlafond =
+parseFloat(
+prompt(
+"Ancien plafond : " +
+oldPlafond.toLocaleString() +
+" " +
+(agent.currency || "XOF") +
+"\n\nNouveau plafond :"
+)
+);
+
+if(isNaN(newPlafond) || newPlafond <= 0){
+alert("❌ Plafond invalide");
+return;
+}
+
+if(newPlafond < Number(agent.solde || 0)){
+alert(
+"❌ Impossible : le nouveau plafond est inférieur au solde actuel de l’agent."
+);
+return;
+}
+
+await update(ref(db,"agents/"+phone),{
+plafond:newPlafond
+});
+
+alert("✅ Plafond agent modifié");
+
+loadAgents();
+};
+
+// supprimer agent
+window.deleteAgent = async function(phone){
+if(confirm("Supprimer agent ?")){
+await remove(ref(db,"agents/"+phone));
+loadAgents();
+}
+};
+
+// auto load
+loadAgents();
+
+// ===== DEPOT AGENT =====
+// ===== DEPOT AGENT =====
+// Dépôt client = l'agent donne de l'argent au client
+// Donc le solde agent diminue
+window.depositAgent = async function(phone){
+
+const amount =
+parseFloat(prompt("Montant dépôt client :"));
+
+if(isNaN(amount) || amount <= 0) return;
+
+const snap =
+await get(ref(db,"agents/"+phone));
+
+if(!snap.exists()){
+alert("❌ Agent introuvable");
+return;
+}
+
+let a =
+snap.val();
+
+if(a.frozen === true){
+alert("❌ Agent gelé");
+return;
+}
+
+const solde =
+Number(a.solde || 0);
+
+if(amount > solde){
+alert("❌ Solde agent insuffisant pour faire ce dépôt !");
+return;
+}
+
+const newSolde =
+solde - amount;
+
+await update(ref(db,"agents/"+phone),{
+solde:newSolde
+});
+
+/* 🔥 ENREGISTRER TRANSACTION AGENT */
+const id =
+"agent_trans_" + Date.now();
+
+await set(ref(db,"agentTransactions/"+id),{
+agentPhone:phone,
+type:"Depot client",
+amount:-amount,
+before:solde,
+after:newSolde,
+currency:a.currency || "XOF",
+date:new Date().toLocaleString(),
+status:"OK"
+});
+
+alert("✅ Dépôt client effectué");
+
+loadAgents();
+};
+// ===== RETRAIT AGENT =====
+// ===== RETRAIT AGENT =====
+// Retrait client = l'agent reçoit de l'argent du client
+// Donc le solde agent augmente
+window.withdrawAgent = async function(phone){
+
+const amount =
+parseFloat(prompt("Montant retrait client :"));
+
+if(isNaN(amount) || amount <= 0) return;
+
+const snap =
+await get(ref(db,"agents/"+phone));
+
+if(!snap.exists()){
+alert("❌ Agent introuvable");
+return;
+}
+
+let a =
+snap.val();
+
+if(a.frozen === true){
+alert("❌ Agent gelé");
+return;
+}
+
+const solde =
+Number(a.solde || 0);
+
+const plafond =
+Number(a.plafond || 0);
+
+if(plafond <= 0){
+alert("❌ Plafond agent non défini");
+return;
+}
+
+if(solde >= plafond){
+alert(
+"❌ Plafond atteint. Cet agent ne peut plus faire de retrait, seulement des dépôts."
+);
+return;
+}
+
+if((solde + amount) > plafond){
+const reste =
+plafond - solde;
+
+alert(
+"❌ Retrait refusé.\n" +
+"Ce retrait dépasse le plafond.\n\n" +
+"Montant maximum possible : " +
+reste.toLocaleString() +
+" " +
+(a.currency || "XOF")
+);
+return;
+}
+
+const newSolde =
+solde + amount;
+
+await update(ref(db,"agents/"+phone),{
+solde:newSolde
+});
+
+/* 🔥 ENREGISTRER TRANSACTION AGENT */
+const id =
+"agent_trans_" + Date.now();
+
+await set(ref(db,"agentTransactions/"+id),{
+agentPhone:phone,
+type:"Retrait client",
+amount:amount,
+before:solde,
+after:newSolde,
+currency:a.currency || "XOF",
+date:new Date().toLocaleString(),
+status:"OK"
+});
+
+alert("✅ Retrait client effectué");
+
+loadAgents();
+};
+// ===== GEL / DEGEL =====
+window.toggleFreezeAgent = async phone=>{
+const snap = await get(ref(db,"agents/"+phone));
+let a = snap.val();
+
+a.frozen = !a.frozen;
+
+await update(ref(db,"agents/"+phone),{frozen:a.frozen});
+
+loadAgents();
+}
+
+// ===== RESET PASSWORD =====
+window.resetPasswordAgent = async phone=>{
+const pass = prompt("Nouveau mot de passe :");
+if(!pass || pass.length < 4) return;
+
+await update(ref(db,"agents/"+phone),{password:pass});
+
+alert("Mot de passe modifié");
+}
+
+// ===== PDF AGENT =====
+window.generatePDFAgent = async function(phone){
+generatePDF(phone, "agent");
+}
+
+// ===== BACKGROUND DYNAMIQUE =====
+const video = document.getElementById("bgVideo");
+const image = document.getElementById("bgImage");
+const toggleAudioBtn = document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+if(currentIsVideo){
+video.muted = isMuted;
+}
+toggleAudioBtn.textContent = isMuted ? "🔇" : "🔊";
+});
+
+let maliMedia = [
+{type:"image", url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97"},
+{type:"video", url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4"}
+];
+let index = 0;
+let currentTimeout;
+switchMedia();
+
+function switchMedia(){
+if (!maliMedia.length) return;
+
+clearTimeout(currentTimeout);
+const ad = maliMedia[index];
+
+// VIDEO
+if (ad.type === "video") {
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+const duration = ad.duration || video.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+};
+}
+
+// IMAGE
+else {
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration = ad.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+// 🔥 FIREBASE SYNC
+onValue(ref(db, "ads"), snap => {
+  console.log("ADS =", snap.val());
+const data = snap.val();
+if (!data) return;
+
+maliMedia = Object.values(data);
+restartSlider();
+});
+
+onValue(ref(db,"currencies"), async (snap)=>{
+
+const data = snap.val() || {};
+
+currencyMap = {};
+rateToXOF = {};
+
+for(const prefix in data){
+
+const c = data[prefix];
+
+currencyMap[prefix] = c.code;
+
+/* 🔥 taux live */
+try{
+
+const res =
+await fetch(
+`https://open.er-api.com/v6/latest/${c.code}`
+);
+
+const json = await res.json();
+
+if(
+json.result === "success" &&
+json.rates["XOF"]
+){
+rateToXOF[c.code] =
+json.rates["XOF"];
+}
+
+}catch{
+
+rateToXOF[c.code] = 1;
+
+}
+
+}
+
+/* 🔥 XOF toujours */
+rateToXOF["XOF"] = 1;
+
+console.log("✅ currencies sync",currencyMap);
+console.log("✅ rates sync",rateToXOF);
+
+loadUsers();
+loadAgents();
+
+});
+</script>
+</body>
+</html>
+

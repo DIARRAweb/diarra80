@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Money Monitor — COBRA</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+}
+
+/* 🔥 HEADER COMME USERS.HTML */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+header h1{
+font-size:20px;
+font-weight:bold;
+color:white;
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* 🔥 CONTAINER */
+.container{
+width:92%;
+max-width:1400px;
+margin:25px auto;
+}
+
+/* 🔥 GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+/* 🔥 CARD STYLE USERS.HTML */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:22px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.card-title{
+font-size:15px;
+color:#555;
+margin-bottom:10px;
+font-weight:600;
+}
+
+.card-value{
+font-size:32px;
+font-weight:bold;
+color:#111;
+}
+
+.orange{
+color:#ff6a00;
+}
+
+.green{
+color:#00c853;
+}
+
+.red{
+color:red;
+}
+
+.blue{
+color:#1976d2;
+}
+
+/* 🔥 SECTION TITLE */
+.section-title{
+font-size:22px;
+margin:30px 0 15px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:14px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+}
+
+/* 🔥 TABLE */
+.table-box{
+margin-top:25px;
+overflow:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+background:white;
+border-radius:15px;
+overflow:hidden;
+color:#111;
+}
+
+th{
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+padding:12px;
+text-align:left;
+}
+
+td{
+padding:12px;
+border-bottom:1px solid #eee;
+}
+
+tr:hover{
+background:#fff3e0;
+}
+
+/* 🔥 STATUS */
+.status{
+padding:6px 12px;
+border-radius:999px;
+font-size:13px;
+font-weight:bold;
+display:inline-block;
+}
+
+.success{
+background:rgba(0,200,83,0.12);
+color:#00c853;
+}
+
+.danger{
+background:rgba(255,0,0,0.12);
+color:red;
+}
+
+/* 🔥 WARNING */
+#rateWarning{
+display:none;
+background:rgba(255,255,255,0.95) !important;
+border:2px solid red !important;
+color:red !important;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
+font-weight:bold;
+box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+/* 🔥 BACKGROUND DYNAMIQUE */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-2;
+overflow:hidden;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.2);
+z-index:-1;
+}
+
+/* 🔥 BOUTON AUDIO */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:none;
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+}
+
+/* 🔥 BOUTON RETOUR */
+.btn-back{
+background:linear-gradient(45deg,#222,#444);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+margin-top:25px;
+}
+
+.btn-back:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* 🔥 BOUTON SUPPRESSION TRANSACTIONS */
+.btn-delete{
+background:crimson;
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-delete:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* 🔥 RESPONSIVE */
+@media(max-width:700px){
+.card-value{
+font-size:24px;
+}
+
+header h1{
+font-size:17px;
+}
+
+.section-title{
+font-size:18px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND DYNAMIQUE -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage">
+</div>
+
+<div class="hero-overlay"></div>
+
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<header>
+<h1>💰 Money Monitor — COBRA</h1>
+
+<div class="live-box">
+<div class="live-dot"></div>
+LIVE
+</div>
+</header>
+
+<div class="container">
+
+<!-- ===== STATS ===== -->
+
+<div class="grid">
+
+<!-- TOTAL SYSTEME -->
+<div class="card">
+<div class="card-title">
+💵 Argent total du système
+</div>
+
+<div class="card-value orange" id="totalMoney">
+0 XOF
+</div>
+</div>
+
+<!-- FONDS UTILISATEURS -->
+<div class="card">
+<div class="card-title">
+👥 Fonds utilisateurs
+</div>
+
+<div class="card-value blue" id="usersMoney">
+0 XOF
+</div>
+</div>
+
+<!-- FONDS AGENTS -->
+<div class="card">
+<div class="card-title">
+💼 Argent des agents
+</div>
+<div class="card-value green" id="agentsMoney">
+0 XOF
+</div>
+</div>
+
+<!-- FONDS SOUTIEN -->
+<div class="card">
+<div class="card-title">
+🏛 Fonds de soutien
+</div>
+
+<div class="card-value orange" id="supportMoney">
+0 XOF
+</div>
+</div>
+
+<!-- FRAIS INTERNATIONAUX -->
+<div class="card">
+<div class="card-title">
+🌍 Frais internationaux
+</div>
+
+<div class="card-value red" id="internationalFees">
+0 XOF
+</div>
+</div>
+
+<!-- FRAIS NATIONAUX -->
+<div class="card">
+<div class="card-title">
+🇲🇱 Frais nationaux
+</div>
+
+<div class="card-value green" id="nationalFees">
+0 XOF
+</div>
+</div>
+
+<!-- UTILISATEURS -->
+<div class="card">
+<div class="card-title">
+👥 Utilisateurs
+</div>
+
+<div class="card-value blue" id="totalUsers">
+0
+</div>
+</div>
+
+<!-- AGENTS -->
+<div class="card">
+<div class="card-title">
+👨‍💼 Agents
+</div>
+
+<div class="card-value green" id="totalAgents">
+0
+</div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="card">
+<div class="card-title">
+🔄 Transactions
+</div>
+
+<div class="card-value" id="totalTransactions">
+0
+</div>
+</div>
+
+</div>
+
+<!-- ===== DEVISES ===== -->
+<h2 class="section-title">
+🌍 Répartition des devises
+</h2>
+
+<div id="rateWarning" style="
+display:none;
+background:rgba(255,0,0,0.12);
+border:1px solid rgba(255,0,0,0.3);
+color:#ff5252;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
+font-weight:bold;
+">
+⚠️ Certains taux de change ne sont pas disponibles. Les totaux peuvent être incomplets.
+</div>
+
+<div class="grid" id="currencyGrid">
+</div>
+
+<!-- ===== TRANSACTIONS ===== -->
+<h2
+class="section-title"
+onclick="toggleTransactions()"
+style="cursor:pointer;"
+>
+📜 Transactions récentes ⬇
+</h2>
+
+<div class="card" style="margin-bottom:15px;">
+<button onclick="clearTransactions()" class="btn-delete">
+🗑 Vider les transactions récentes
+</button>
+</div>
+
+<div id="transactionsBox">
+<div class="card table-box">
+
+<table>
+
+<thead> 
+<tr>
+<th>Numéro</th>
+<th>Type</th>
+<th>Montant</th>
+<th>Date</th>
+<th>Statut</th>
+</tr>
+</thead>
+
+<tbody id="transactionTable">
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+<div class="card">
+<button onclick="location.href='admin.html'" class="btn-back">
+⬅ Retour
+</button>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+onValue, remove
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+/* =========================
+🔥 FIREBASE
+========================= */
+
+const firebaseConfig = {
+   apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+   authDomain: "securite-53ada.firebaseapp.com",
+   databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+   projectId: "securite-53ada",
+   storageBucket: "securite-53ada.firebasestorage.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+const video =
+document.getElementById("bgVideo");
+
+const image =
+document.getElementById("bgImage");
+
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+let maliMedia = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97"
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4"
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+switchMedia();
+
+function switchMedia(){
+if(!maliMedia.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = maliMedia[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+
+const duration =
+ad.duration || video.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+};
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+ad.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+/* 🔥 FIREBASE SYNC ADS */
+onValue(ref(db,"ads"), snap => {
+console.log("ADS =", snap.val());
+
+const data = snap.val();
+
+if(!data) return;
+
+maliMedia = Object.values(data);
+
+restartSlider();
+});
+
+/* =========================
+🔥 ELEMENTS
+========================= */
+
+const totalMoney =
+document.getElementById("totalMoney");
+
+const totalUsers =
+document.getElementById("totalUsers");
+
+const totalAgents =
+document.getElementById("totalAgents");
+
+const totalTransactions =
+document.getElementById("totalTransactions");
+
+const usersMoney =
+document.getElementById("usersMoney");
+
+const agentsMoney =
+document.getElementById("agentsMoney");
+
+const supportMoney =
+document.getElementById("supportMoney");
+
+const internationalFees =
+document.getElementById("internationalFees");
+
+const nationalFees =
+document.getElementById("nationalFees");
+
+const currencyGrid =
+document.getElementById("currencyGrid");
+
+const rateWarning =
+document.getElementById("rateWarning");
+
+const transactionTable =
+document.getElementById("transactionTable");
+
+/* =========================
+📦 DONNÉES EN MÉMOIRE
+========================= */
+
+let usersData = {};
+let agentsData = {};
+let transactionsData = {};
+let currenciesData = {};
+let treasuryData = {};
+
+let rateToXOF = {
+XOF: 1
+};
+
+let currencyFlags = {
+XOF: "ML"
+};
+
+let currencyCountries = {
+XOF: "Mali"
+};
+
+/* =========================
+🧮 FORMAT MONNAIE AUTO
+========================= */
+let currencySymbols = {
+XOF: "FCFA"
+};
+
+function getCurrencySymbol(code){
+const currencyCode = code || "XOF";
+return currencySymbols[currencyCode] || currencyCode;
+}
+
+function getCurrencyFlag(code){
+const currencyCode = code || "XOF";
+return currencyFlags[currencyCode] || "💱";
+}
+
+function getCurrencyCountry(code){
+const currencyCode = code || "XOF";
+return currencyCountries[currencyCode] || "";
+}
+
+function formatMoney(value, currency = "XOF"){
+const code = currency || "XOF";
+const symbol = getCurrencySymbol(code);
+const amount = Number(value || 0);
+
+/*
+🔥 XOF / FCFA : pas de décimales
+🔥 Autres devises : 2 décimales
+*/
+const decimals = code === "XOF" ? 0 : 2;
+
+return amount.toLocaleString(
+"fr-FR",
+{
+minimumFractionDigits: decimals,
+maximumFractionDigits: decimals
+}
+) + " " + symbol;
+}
+
+function formatXOF(value){
+return formatMoney(value, "XOF");
+}
+
+/* =========================
+💱 CONVERSION EN XOF
+========================= */
+
+function convertToXOF(amount, currency){
+
+const code =
+currency || "XOF";
+
+const value =
+Number(amount || 0);
+
+if(code === "XOF"){
+return value;
+}
+
+const rate =
+Number(rateToXOF[code] || 0);
+
+if(!rate || rate <= 0){
+console.warn("Taux introuvable pour :", code);
+return value;
+}
+
+return value * rate;
+}
+
+/* =========================
+🧠 RECALCUL GLOBAL
+========================= */
+
+function recalculateAll(){
+
+let usersTotalXOF = 0;
+let agentsTotalXOF = 0;
+
+let currencyStats = {};
+let missingRates = [];
+let userCount = 0;
+let agentCount = 0;
+
+/* =========================
+👥 USERS
+========================= */
+Object.values(usersData).forEach(u => {
+userCount++;
+
+const solde = Number(u.solde || 0);
+const currency = u.currency || "XOF";
+const soldeXOF = convertToXOF(solde, currency);
+
+usersTotalXOF += soldeXOF;
+
+if(!currencyStats[currency]){
+currencyStats[currency] = 0;
+}
+
+currencyStats[currency] += solde;
+});
+
+/* =========================
+👨‍💼 AGENTS
+========================= */
+Object.values(agentsData).forEach(a => {
+agentCount++;
+
+const solde = Number(a.solde || 0);
+const currency = a.currency || "XOF";
+const soldeXOF = convertToXOF(solde, currency);
+
+agentsTotalXOF += soldeXOF;
+
+if(!currencyStats[currency]){
+currencyStats[currency] = 0;
+}
+
+currencyStats[currency] += solde;
+});
+
+/* =========================
+🏛 TRÉSORERIE
+========================= */
+const nationalFeesXOF =
+Number(treasuryData.national?.balance || 0);
+
+const internationalFeesXOF =
+Number(treasuryData.international?.balance || 0);
+
+const supportTotalXOF =
+Number(treasuryData.startup?.balance || 0);
+
+/* =========================
+📜 TRANSACTIONS
+========================= */
+const transactionsList =
+Object.values(transactionsData);
+
+/* =========================
+💰 TOTAL SYSTEME
+========================= */
+const systemTotalXOF =
+usersTotalXOF +
+agentsTotalXOF +
+nationalFeesXOF +
+internationalFeesXOF +
+supportTotalXOF;
+
+/* =========================
+⚠️ VÉRIFICATION TAUX MANQUANTS
+========================= */
+Object.keys(currencyStats).forEach(code => {
+if(code !== "XOF" && !rateToXOF[code]){
+missingRates.push(code);
+}
+});
+
+if(missingRates.length > 0){
+rateWarning.style.display = "block";
+rateWarning.innerText =
+"⚠️ Taux indisponible pour : " + missingRates.join(", ") +
+". Les totaux peuvent être incomplets.";
+}else{
+rateWarning.style.display = "none";
+}
+
+/* =========================
+🖥️ AFFICHAGE
+========================= */
+totalMoney.innerText =
+formatMoney(systemTotalXOF, "XOF");
+
+usersMoney.innerText =
+formatMoney(usersTotalXOF, "XOF");
+
+agentsMoney.innerText =
+formatMoney(agentsTotalXOF, "XOF");
+
+supportMoney.innerText =
+formatMoney(supportTotalXOF, "XOF");
+
+nationalFees.innerText =
+formatMoney(nationalFeesXOF, "XOF");
+
+internationalFees.innerText =
+formatMoney(internationalFeesXOF, "XOF");
+
+totalUsers.innerText =
+userCount;
+
+totalAgents.innerText =
+agentCount;
+
+totalTransactions.innerText =
+transactionsList.length;
+
+/* =========================
+🌍 RÉPARTITION DEVISES
+========================= */
+currencyGrid.innerHTML = "";
+Object.entries(currencyStats).forEach(([code,value]) => {
+const valueXOF =
+convertToXOF(value, code);
+
+const flag =
+getCurrencyFlag(code);
+
+const country =
+getCurrencyCountry(code);
+
+currencyGrid.innerHTML += `
+<div class="card">
+<div class="card-title">
+🌍 ${flag} ${country}
+</div>
+
+<div style="
+font-size:13px;
+color:#777;
+font-weight:600;
+margin-bottom:8px;
+">
+Devise ${code}
+</div>
+
+<div class="card-value orange">
+${formatMoney(value, code)}
+</div>
+
+<div style="color:#555;margin-top:8px;font-weight:600;">
+≈ ${formatMoney(valueXOF, "XOF")}
+</div>
+</div>
+`;
+});
+/* =========================
+📜 TABLE TRANSACTIONS
+========================= */
+transactionTable.innerHTML = "";
+
+transactionsList
+.slice()
+.reverse()
+.slice(0,20)
+.forEach(t => {
+
+const currency =
+t.currency || "XOF";
+
+transactionTable.innerHTML += `
+<tr>
+<td>${t.phone || "-"}</td>
+<td>${t.type || "-"}</td>
+<td>
+${formatMoney(t.amount || 0, currency)}
+</td>
+<td>${t.date || "-"}</td>
+<td>
+<span class="status ${t.status === "FAILED" ? "danger" : "success"}">
+${t.status || "OK"}
+</span>
+</td>
+</tr>
+`;
+});
+
+}
+
+/* =========================
+🌍 CHARGER LES DEVISES + SYMBOLES + PAYS
+========================= */
+onValue(ref(db,"currencies"), async snap => {
+currenciesData =
+snap.val() || {};
+
+rateToXOF = {
+XOF: 1
+};
+
+currencySymbols = {
+XOF: "FCFA"
+};
+
+currencyFlags = {
+XOF: "ML"
+};
+
+currencyCountries = {
+XOF: "Mali"
+};
+
+const promises =
+Object.values(currenciesData).map(async c => {
+if(!c.code) return;
+
+const code = c.code;
+
+/* 🔥 RÉCUPÉRER LE SYMBOLE DEPUIS FIREBASE */
+currencySymbols[code] =
+c.symbol || c.symbole || code;
+
+/* 🔥 RÉCUPÉRER LE CODE PAYS DEPUIS FIREBASE */
+currencyFlags[code] =
+c.flag || c.drapeau || c.countryCode || "🌍";
+
+/* 🔥 RÉCUPÉRER LE NOM DU PAYS DEPUIS FIREBASE */
+currencyCountries[code] =
+c.country || c.pays || c.name || "";
+
+if(code === "XOF"){
+rateToXOF["XOF"] = 1;
+
+currencySymbols["XOF"] =
+c.symbol || c.symbole || "FCFA";
+
+currencyFlags["XOF"] =
+c.flag || c.drapeau || c.countryCode || "ML";
+
+currencyCountries["XOF"] =
+c.country || c.pays || c.name || "Mali";
+
+return;
+}
+
+try{
+const res =
+await fetch(
+`https://open.er-api.com/v6/latest/${code}`
+);
+
+const json =
+await res.json();
+
+if(
+json.result === "success" &&
+json.rates &&
+json.rates["XOF"]
+){
+rateToXOF[code] =
+json.rates["XOF"];
+}else{
+console.warn("Taux XOF introuvable pour :", code);
+}
+}catch(e){
+console.warn("Erreur taux :", code, e);
+}
+});
+
+await Promise.all(promises);
+
+console.log("TAUX CHARGÉS :", rateToXOF);
+console.log("SYMBOLES CHARGÉS :", currencySymbols);
+console.log("PAYS CHARGÉS :", currencyCountries);
+console.log("CODES PAYS CHARGÉS :", currencyFlags);
+
+recalculateAll();
+});
+/* =========================
+👥 CHARGER USERS
+========================= */
+
+onValue(ref(db,"users"), snap => {
+
+usersData =
+snap.val() || {};
+
+recalculateAll();
+
+});
+
+/* =========================
+👨‍💼 CHARGER AGENTS
+========================= */
+
+onValue(ref(db,"agents"), snap => {
+
+agentsData =
+snap.val() || {};
+
+recalculateAll();
+
+});
+
+/* =========================
+📜 CHARGER TRANSACTIONS
+========================= */
+
+onValue(ref(db,"transactions"), snap => {
+
+transactionsData =
+snap.val() || {};
+
+recalculateAll();
+
+});
+
+/* =========================
+🏛 CHARGER TRÉSORERIE
+========================= */
+onValue(ref(db,"treasury"), snap => {
+treasuryData =
+snap.val() || {};
+recalculateAll();
+});
+
+/* =========================
+📜 TOGGLE TRANSACTIONS
+========================= */
+window.toggleTransactions =
+function(){
+const box =
+document.getElementById("transactionsBox");
+box.style.display =
+box.style.display === "none"
+? "block"
+: "none";
+};
+
+/* =========================
+🗑 VIDER TRANSACTIONS
+========================= */
+window.clearTransactions = async function(){
+const ok = confirm(
+"Voulez-vous vraiment supprimer toutes les transactions récentes ?"
+);
+
+if(!ok) return;
+
+try{
+await remove(ref(db,"transactions"));
+transactionsData = {};
+transactionTable.innerHTML = "";
+totalTransactions.innerText = "0";
+alert("✅ Transactions supprimées avec succès");
+}catch(e){
+console.error(e);
+alert("❌ Erreur lors de la suppression des transactions");
+}
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f6fb, #ffffff);
+  color: #222;
+  margin: 0;
+}
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg, #ff6a00, #ff9f00);
+  color: white;
+  text-align: center;
+  padding: 18px;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0.6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* MAIN */
+main {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  flex-wrap: wrap;
+}
+
+/* CARDS */
+section, .dashboard-box, .hero {
+  background: white;
+  padding: 26px;
+  border-radius: 18px;
+  width: 360px;
+  max-width: 100%;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  transition: 0.25s ease;
+}
+
+section:hover, .hero:hover {
+  transform: translateY(-3px);
+}
+
+/* TITRES */
+h2, h3 {
+  text-align: center;
+  color: #ff6a00;
+  margin-bottom: 14px;
+}
+
+/* INPUTS */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+input:focus {
+  border-color: #ff6a00;
+  background: white;
+}
+
+/* BUTTONS */
+button, .btn {
+  width: 100%;
+  padding: 13px;
+  margin-top: 14px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff6a00, #ff9f00);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+button:hover, .btn:hover {
+  opacity: 0.95;
+  transform: scale(1.03);
+}
+
+/* DASHBOARD BALANCE */
+#solde {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* USER CARDS */
+.user-card {
+  background: #f9fafc;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  border-left: 5px solid #ff6a00;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 16px;
+  margin-top: 40px;
+  font-size: 14px;
+  color: #777;
+  background: white;
+}
+
+/* HERO CENTER */
+.center {
+  text-align: center;
+  margin-top: 60px;
+  max-width: 720px;
+}
+
+/* ERROR */
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* MOBILE */
+@media(max-width: 500px){
+  section, .dashboard-box {
+    width: 100%;
+  }
+}

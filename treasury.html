@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trésorerie</title>
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:"Segoe UI",sans-serif;
+color:#111;
+min-height:100vh;
+overflow-x:hidden;
+padding-top:90px;
+}
+
+/* 🔥 HEADER COMME MONEY-MONITOR */
+header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:14px 20px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(12px);
+color:white;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+header h1{
+font-size:20px;
+font-weight:bold;
+color:white;
+}
+
+.live-box{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+color:#00ff99;
+font-weight:bold;
+}
+
+.live-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#00ff99;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
+
+/* 🔥 BACKGROUND DYNAMIQUE */
+.hero-wall{
+position:fixed;
+inset:0;
+z-index:-2;
+overflow:hidden;
+}
+
+.hero-wall video,
+.hero-wall img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.hero-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.2);
+z-index:-1;
+}
+
+/* 🔥 AUDIO */
+.audio-btn{
+position:fixed;
+bottom:15px;
+right:15px;
+z-index:1000;
+background:rgba(0,0,0,0.35);
+border:none;
+border-radius:50%;
+width:42px;
+height:42px;
+color:white;
+cursor:pointer;
+font-size:18px;
+}
+
+/* 🔥 CONTAINER */
+.container{
+width:92%;
+max-width:1200px;
+margin:25px auto;
+}
+
+/* 🔥 SECTION TITLE */
+.section-title{
+font-size:22px;
+margin:30px 0 15px;
+color:white;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(10px);
+padding:14px 18px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,0.3);
+cursor:pointer;
+}
+
+/* 🔥 GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:20px;
+}
+
+/* 🔥 CARD */
+.card{
+background:rgba(255,255,255,0.95);
+color:#111;
+padding:22px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+animation:fadeUp 0.4s ease;
+transition:0.3s;
+margin-bottom:20px;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.tax-header{
+font-size:18px;
+font-weight:bold;
+margin-bottom:12px;
+color:#ff6a00;
+}
+
+.balance{
+font-size:30px;
+font-weight:bold;
+margin-bottom:18px;
+color:#111;
+}
+
+.orange{
+color:#ff6a00;
+}
+
+.green{
+color:#00c853;
+}
+
+.red{
+color:red;
+}
+
+.blue{
+color:#1976d2;
+}
+
+/* 🔥 INPUT */
+label{
+font-weight:600;
+color:#333;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:12px;
+border:1px solid #ddd;
+background:rgba(255,255,255,0.95);
+color:#111;
+font-size:15px;
+outline:none;
+}
+
+input:focus{
+border:2px solid #ff6a00;
+box-shadow:0 0 20px rgba(255,106,0,0.35);
+}
+
+/* 🔥 BOUTONS */
+button{
+padding:13px;
+margin-top:12px;
+border:none;
+border-radius:14px;
+font-weight:bold;
+cursor:pointer;
+background:linear-gradient(45deg,#ff9a00,#ff3d00);
+color:white;
+font-size:15px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.03);
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+.btn-full{
+width:100%;
+}
+
+.btn-back{
+background:linear-gradient(45deg,#222,#444);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.btn-send{
+background:linear-gradient(45deg,#1976d2,#00c853);
+}
+
+.hidden{
+display:none;
+}
+
+/* 🔥 RESPONSIVE */
+@media(max-width:700px){
+header h1{
+font-size:17px;
+}
+
+.section-title{
+font-size:18px;
+}
+
+.balance{
+font-size:24px;
+}
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND DYNAMIQUE -->
+<div class="hero-wall">
+<video id="bgVideo" playsinline></video>
+<img id="bgImage">
+</div>
+<div class="hero-overlay"></div>
+<button id="toggleAudio" class="audio-btn">🔇</button>
+
+<header>
+<h1>💰 Trésorerie Admin — COBRA</h1>
+<div class="live-box">
+<div class="live-dot"></div>
+LIVE
+</div>
+</header>
+
+<main>
+<section class="container">
+
+<h2 class="section-title" onclick="toggleTreasuryBox()">
+💰 Gestion Trésorerie ⬇
+</h2>
+
+<div id="treasuryBox">
+<div class="grid">
+
+<!-- ========================= -->
+<!-- 🔥 TAXE NATIONALE -->
+<!-- ========================= -->
+<div class="card">
+<div class="tax-header">
+🌍 Commission nationale
+</div>
+
+<div class="balance green" id="nationalBalance">
+0 FCFA
+</div>
+
+<label>Nom</label>
+<input id="nationalName" type="text">
+
+<label>Taux (%)</label>
+<input id="nationalRate" type="number">
+
+<button class="btn-full" onclick="saveNational()">
+💾 Enregistrer
+</button>
+
+<button class="btn-full btn-send" onclick="sendNationalFees()">
+📤 Envoyer au service
+</button>
+</div>
+
+<!-- ========================= -->
+<!-- 🌎 TAXE INTERNATIONALE -->
+<!-- ========================= -->
+<div class="card">
+<div class="tax-header">
+🌎 Commission internationale
+</div>
+
+<div class="balance red" id="internationalBalance">
+0 FCFA
+</div>
+
+<label>Nom</label>
+<input id="internationalName" type="text">
+
+<label>Taux (%)</label>
+<input id="internationalRate" type="number">
+
+<button class="btn-full" onclick="saveInternational()">
+💾 Enregistrer
+</button>
+
+<button class="btn-full btn-send" onclick="sendInternationalFees()">
+📤 Envoyer au service
+</button>
+</div>
+
+<!-- ========================= -->
+<!-- 🏛 FONDS DE SOUTIEN -->
+<!-- ========================= -->
+<div class="card">
+<div class="tax-header">
+🏛 Fonds de soutien
+</div>
+
+<div class="balance orange" id="startupBalance">
+0 FCFA
+</div>
+
+<label>Nom</label>
+<input id="startupName" type="text">
+
+<label>Taux (%)</label>
+<input id="startupRate" type="number">
+
+<button class="btn-full" onclick="saveStartup()">
+💾 Enregistrer
+</button>
+
+<button class="btn-full btn-send" onclick="sendStartupFees()">
+📤 Envoyer à l'État
+</button>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<button onclick="goBack()" class="btn-back">
+⬅ Retour
+</button>
+</div>
+
+</section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, onValue  } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+  const firebaseConfig = {
+   apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+   authDomain: "securite-53ada.firebaseapp.com",
+   databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+   projectId: "securite-53ada",
+   storageBucket: "securite-53ada.firebasestorage.app",
+   messagingSenderId: "675532854623",
+   appId: "1:675532854623:web:4d0ada89aa82b9632852ea"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* =========================
+🔥 INITIALISATION AUTOMATIQUE TRÉSORERIE
+========================= */
+
+async function initTreasury(){
+
+const snap = await get(ref(db,"treasury"));
+const t = snap.val() || {};
+
+const fixedTreasury = {
+national:{
+name: t.national?.name || "Commission nationale",
+rate: Number(t.national?.rate ?? 0.01),
+balance: Number(t.national?.balance ?? 0)
+},
+
+international:{
+name: t.international?.name || "Commission internationale",
+rate: Number(t.international?.rate ?? 0.015),
+balance: Number(t.international?.balance ?? 0)
+},
+
+startup:{
+name: t.startup?.name || "Fonds soutien digital",
+rate: Number(t.startup?.rate ?? 0.005),
+balance: Number(t.startup?.balance ?? 0)
+}
+};
+
+await set(ref(db,"treasury"), fixedTreasury);
+
+console.log("✅ Trésorerie corrigée automatiquement :", fixedTreasury);
+
+}
+
+await initTreasury();
+
+/* =========================
+🔥 BACKGROUND DYNAMIQUE
+========================= */
+const video =
+document.getElementById("bgVideo");
+const image =
+document.getElementById("bgImage");
+const toggleAudioBtn =
+document.getElementById("toggleAudio");
+
+let isMuted = true;
+let currentIsVideo = false;
+
+toggleAudioBtn.addEventListener("click", () => {
+isMuted = !isMuted;
+
+if(currentIsVideo){
+video.muted = isMuted;
+}
+
+toggleAudioBtn.textContent =
+isMuted ? "🔇" : "🔊";
+});
+
+let maliMedia = [
+{
+type:"image",
+url:"https://images.unsplash.com/photo-1600172454520-134a542d7c97"
+},
+{
+type:"video",
+url:"https://cdn.pixabay.com/video/2018/10/09/18675-297657059_large.mp4"
+}
+];
+
+let index = 0;
+let currentTimeout;
+
+switchMedia();
+
+function switchMedia(){
+if(!maliMedia.length) return;
+
+clearTimeout(currentTimeout);
+
+const ad = maliMedia[index];
+
+if(ad.type === "video"){
+video.src = ad.url;
+video.style.display = "block";
+image.style.display = "none";
+video.muted = isMuted;
+currentIsVideo = true;
+
+video.onloadedmetadata = () => {
+video.play().catch(()=>{});
+
+const duration =
+ad.duration || video.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+};
+
+}else{
+image.src = ad.url;
+image.style.display = "block";
+video.style.display = "none";
+currentIsVideo = false;
+
+const duration =
+ad.duration || 10;
+
+currentTimeout = setTimeout(() => {
+index = (index + 1) % maliMedia.length;
+switchMedia();
+}, duration * 1000);
+}
+}
+
+function restartSlider(){
+index = 0;
+switchMedia();
+}
+
+/* 🔥 FIREBASE SYNC ADS */
+onValue(ref(db,"ads"), snap => {
+console.log("ADS =", snap.val());
+
+const data = snap.val();
+
+if(!data) return;
+
+maliMedia = Object.values(data);
+restartSlider();
+});
+
+/* =========================
+👁 OUVRIR / FERMER TRÉSORERIE
+========================= */
+window.toggleTreasuryBox = function(){
+document.getElementById("treasuryBox")
+.classList.toggle("hidden");
+};
+
+/* =========================
+💱 DEVISES DYNAMIQUES
+========================= */
+
+let currencies = {};
+let rateToXOF = {};
+
+function getCurrencySymbol(code){
+for(const prefix in currencies){
+if(currencies[prefix].code === code){
+return currencies[prefix].symbol || code;
+}
+}
+
+if(code === "XOF"){
+return "FCFA";
+}
+
+return code;
+}
+
+function formatMoney(value, code = "XOF"){
+const symbol =
+getCurrencySymbol(code);
+
+const decimals =
+code === "XOF" ? 0 : 2;
+
+return Number(value || 0).toLocaleString(
+"fr-FR",
+{
+minimumFractionDigits:decimals,
+maximumFractionDigits:decimals
+}
+) + " " + symbol;
+}
+
+function formatXOF(value){
+return formatMoney(value,"XOF");
+}
+
+function load(){
+
+onValue(ref(db,"treasury"),(snap)=>{
+
+let t = snap.val() || {
+
+national:{
+name:"Commission nationale",
+rate:0.01,
+balance:0
+},
+
+international:{
+name:"Commission internationale",
+rate:0.015,
+balance:0
+},
+
+startup:{
+name:"Fonds soutien digital",
+rate:0.005,
+balance:0
+}
+
+};
+
+nationalBalance.innerText =
+formatXOF(t.national.balance || 0);
+
+internationalBalance.innerText =
+formatXOF(t.international.balance || 0);
+
+startupBalance.innerText =
+formatXOF(t.startup.balance || 0);
+
+nationalName.value =
+t.national.name;
+
+internationalName.value =
+t.international.name;
+
+startupName.value =
+t.startup.name;
+
+nationalRate.value =
+(t.national.rate || 0) * 100;
+
+internationalRate.value =
+(t.international.rate || 0) * 100;
+
+startupRate.value =
+(t.startup.rate || 0) * 100;
+
+});
+
+}
+load();
+
+/* =========================
+💾 SAVE NATIONAL
+========================= */
+
+window.saveNational = async function(){
+
+await update(ref(db,"treasury/national"),{
+
+name:nationalName.value,
+
+rate:
+parseFloat(nationalRate.value || 0)/100
+
+});
+
+alert("✅ Taxe nationale mise à jour");
+
+load();
+
+};
+
+/* =========================
+💾 SAVE INTERNATIONAL
+========================= */
+
+window.saveInternational = async function(){
+
+await update(ref(db,"treasury/international"),{
+
+name:internationalName.value,
+
+rate:
+parseFloat(internationalRate.value || 0)/100
+
+});
+
+alert("✅ Taxe internationale mise à jour");
+
+load();
+
+};
+
+/* =========================
+💾 SAVE STARTUP
+========================= */
+
+window.saveStartup = async function(){
+
+await update(ref(db,"treasury/startup"),{
+
+name:startupName.value,
+
+rate:
+parseFloat(startupRate.value || 0)/100
+
+});
+
+alert("✅ Fonds soutien mis à jour");
+
+load();
+
+};
+
+window.updateRates = async function(){
+
+await update(ref(db,"treasury"),{
+
+/* 🔥 TAXE NATIONALE */
+nationalTaxName:
+nationalName.value,
+
+nationalRate:
+parseFloat(nationalRate.value || 0) / 100,
+
+/* 🔥 TAXE INTERNATIONALE */
+internationalTaxName:
+internationalName.value,
+
+internationalRate:
+parseFloat(internationalRate.value || 0) / 100,
+
+/* 🔥 TAXE STARTUP */
+startupTaxName:
+startupName.value,
+
+startupRate:
+parseFloat(startupRate.value || 0) / 100
+
+});
+
+alert("✅ Taxes mises à jour");
+
+load();
+
+};
+
+/* =========================
+📤 ENVOYER COMMISSION NATIONALE
+========================= */
+
+window.sendNationalFees = async function(){
+
+const treasurySnap =
+await get(ref(db,"treasury"));
+
+const adminSnap =
+await get(ref(db,"users/+22399999999"));
+
+if(!treasurySnap.exists() || !adminSnap.exists()){
+alert("❌ Données introuvables");
+return;
+}
+
+let treasury = treasurySnap.val();
+let admin = adminSnap.val();
+
+let amount =
+Number(treasury.national?.balance || 0);
+
+if(amount <= 0){
+alert("❌ Aucun frais national");
+return;
+}
+
+/* 🔥 crédit admin */
+admin.solde =
+Number(admin.solde || 0) + amount;
+
+/* 🔥 reset */
+treasury.national.balance = 0;
+
+/* 🔥 sauvegarde */
+await update(
+ref(db,"users/+22399999999"),
+{
+solde: admin.solde
+}
+);
+
+await update(
+ref(db,"treasury/national"),
+{
+balance:0
+}
+);
+
+alert("✅ Frais nationaux envoyés au compte admin");
+
+load();
+
+};
+
+/* =========================
+📤 ENVOYER COMMISSION INTERNATIONALE
+========================= */
+
+window.sendInternationalFees = async function(){
+
+const treasurySnap =
+await get(ref(db,"treasury"));
+
+const adminSnap =
+await get(ref(db,"users/+22399999999"));
+
+if(!treasurySnap.exists() || !adminSnap.exists()){
+alert("❌ Données introuvables");
+return;
+}
+
+let treasury = treasurySnap.val();
+let admin = adminSnap.val();
+
+let amount =
+Number(treasury.international?.balance || 0);
+
+if(amount <= 0){
+alert("❌ Aucun frais international");
+return;
+}
+
+/* 🔥 crédit admin */
+admin.solde =
+Number(admin.solde || 0) + amount;
+
+/* 🔥 reset */
+treasury.international.balance = 0;
+
+/* 🔥 sauvegarde */
+await update(
+ref(db,"users/+22399999999"),
+{
+solde: admin.solde
+}
+);
+
+await update(
+ref(db,"treasury/international"),
+{
+balance:0
+}
+);
+
+alert("✅ Frais internationaux envoyés au compte admin");
+
+load();
+
+};
+
+/* =========================
+📤 ENVOYER FONDS ETAT
+========================= */
+
+window.sendStartupFees = async function(){
+
+const treasurySnap =
+await get(ref(db,"treasury"));
+
+const stateSnap =
+await get(ref(db,"users/+22375757575"));
+
+if(!treasurySnap.exists() || !stateSnap.exists()){
+alert("❌ Données introuvables");
+return;
+}
+
+let treasury = treasurySnap.val();
+let state = stateSnap.val();
+
+let amount =
+Number(treasury.startup?.balance || 0);
+
+if(amount <= 0){
+alert("❌ Aucun fonds disponible");
+return;
+}
+
+/* 🔥 crédit Etat */
+state.solde =
+Number(state.solde || 0) + amount;
+
+/* 🔥 reset */
+treasury.startup.balance = 0;
+
+/* 🔥 sauvegarde */
+await update(
+ref(db,"users/+22375757575"),
+{
+solde: state.solde
+}
+);
+
+await update(
+ref(db,"treasury/startup"),
+{
+balance:0
+}
+);
+
+alert("✅ Fonds envoyés au compte État");
+
+load();
+
+};
+
+/* =========================
+🔥 SYNC DEVISES
+========================= */
+
+onValue(ref(db,"currencies"), async (snap)=>{
+
+const data = snap.val() || {};
+
+currencies = {};
+rateToXOF = {};
+
+for(const prefix in data){
+
+const c = data[prefix];
+
+currencies[prefix] = {
+code: c.code,
+symbol: c.symbol,
+country: c.country,
+flag: c.flag
+};
+
+/* 🔥 TAUX LIVE */
+try{
+
+const res = await fetch(
+`https://open.er-api.com/v6/latest/${c.code}`
+);
+
+const json = await res.json();
+
+if(
+json.result === "success" &&
+json.rates["XOF"]
+){
+
+rateToXOF[c.code] = json.rates["XOF"];
+
+}
+
+}catch(e){
+
+console.log("Erreur devise :", e);
+
+}
+
+}
+
+/* 🔥 devise locale */
+rateToXOF["XOF"] = 1;
+
+console.log("✅ Treasury sync devises", currencies);
+
+});
+
+window.goBack = function(){
+window.location.href = "admin.html";
+};
+</script>
+
+</body>
+</html>
+
+

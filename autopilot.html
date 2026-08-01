@@ -1,0 +1,224 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>AutoPilot — COBRA</title>
+
+<style>
+body { margin:0; font-family:Segoe UI, sans-serif; color:#111; }
+#bg-video { position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; filter:brightness(0.85); }
+body::before { content:""; position:fixed; inset:0; background:linear-gradient(135deg, rgba(255,140,0,0.35), rgba(255,90,0,0.25)); z-index:-1; }
+
+header { text-align:center; font-size:26px; padding:18px; font-weight:bold; color:#ff9a00; }
+
+.card {
+  max-width:900px;
+  margin:18px auto;
+  background:rgba(255,255,255,0.9);
+  padding:18px;
+  border-radius:18px;
+  backdrop-filter: blur(18px);
+  box-shadow:0 15px 35px rgba(0,0,0,0.35);
+}
+
+input {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:none;
+  background:linear-gradient(45deg,#ff9a00,#ff6a00);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover { transform:scale(1.05); }
+
+.auto-card {
+  background:white;
+  padding:14px;
+  border-radius:14px;
+  margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+
+<video autoplay muted loop id="bg-video">
+<source src="bg-admin.mp4">
+</video>
+
+<header>🤖 AutoPilot — Résolution automatique</header>
+
+<div class="card">
+<h3>⚙️ Paramètres</h3>
+
+<label>⏱ Délai avant annulation automatique (minutes)</label>
+<input id="delayMinutes" type="number" value="1">
+
+<button onclick="saveConfig()">💾 Enregistrer délai</button>
+<button onclick="toggleSystem()" id="systemBtn">🟢 Activer AutoPilot</button>
+</div>
+
+<div class="card">
+<h3>📜 Historique AutoPilot</h3>
+<div id="autoHistory"></div>
+</div>
+
+<div class="card">
+<button onclick="location.href='admin.html'">⬅ Retour</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+const app = initializeApp({ databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/" });
+const db = getDatabase(app);
+
+const delayInput = document.getElementById("delayMinutes");
+const systemBtn = document.getElementById("systemBtn");
+const autoHistory = document.getElementById("autoHistory");
+
+async function loadConfig(){
+  const snap = await get(ref(db,"autopilotConfig"));
+  let cfg = snap.val() || { enabled:false, delay:1 };
+  delayInput.value = cfg.delay;
+  updateButton(cfg.enabled);
+}
+loadConfig();
+
+function updateButton(enabled){
+  systemBtn.innerText = enabled 
+    ? "🔴 Désactiver AutoPilot" 
+    : "🟢 Activer AutoPilot";
+}
+
+window.saveConfig = async ()=>{
+  let delay = parseInt(delayInput.value) || 1;
+  await update(ref(db,"autopilotConfig"), { delay });
+  alert("✅ Délai mis à jour");
+};
+
+window.toggleSystem = async ()=>{
+  const snap = await get(ref(db,"autopilotConfig"));
+  let cfg = snap.val() || {};
+  let enabled = !cfg.enabled;
+  await update(ref(db,"autopilotConfig"), { enabled });
+  updateButton(enabled);
+};
+
+// 🔥 SYNC WITH CLAIMS — AUTO CLICK
+onValue(ref(db,"claims"), async snap=>{
+
+  const cfgSnap = await get(ref(db,"autopilotConfig"));
+  const cfg = cfgSnap.val() || {};
+  if(!cfg.enabled) return;
+
+  const claims = snap.val() || {};
+
+  for(const [claimKey,c] of Object.entries(claims)){
+
+    if(c.resolved) continue;
+
+    const historyKey = c.transactionId || c.historyKey || claimKey;
+
+    const historySnap = await get(ref(db,"history/"+historyKey));
+    const h = historySnap.val();
+
+    if(!h || h.cancelled) continue;
+    if(h.autoPilotDone) continue;
+
+    await update(ref(db,"history/"+historyKey), {
+      autoPilotDone:true
+    });
+
+    await push(ref(db,"autopilotHistory"), {
+      action:"⏳ Attente AutoPilot",
+      tx:historyKey,
+      from:h.from,
+      to:h.to,
+      amount:h.amount,
+      date:new Date().toLocaleString()
+    });
+
+    setTimeout(async ()=>{
+
+      const hxSnap = await get(ref(db,"history/"+historyKey));
+      const hx = hxSnap.val();
+      if(!hx || hx.cancelled) return;
+
+      const senderSnap = await get(ref(db,"users/"+hx.from));
+      const receiverSnap = await get(ref(db,"users/"+hx.to));
+
+      let sender = senderSnap.val();
+      let receiver = receiverSnap.val();
+
+      if(!sender || !receiver) return;
+      if(receiver.solde < hx.amount) return;
+
+      receiver.solde -= hx.amount;
+      sender.solde += hx.amount;
+
+      await update(ref(db,"users/"+hx.from), sender);
+      await update(ref(db,"users/"+hx.to), receiver);
+
+      await update(ref(db,"history/"+historyKey), {
+        cancelled:true,
+        claimed:true,
+        refundDone:true,
+        status:"Annulée automatiquement (AutoPilot)"
+      });
+
+      await update(ref(db,"claims/"+claimKey), {
+        resolved:true,
+        processed:true,
+        auto:true
+      });
+
+      await push(ref(db,"notifications/"+hx.from), {
+        title:"🤖 AutoPilot — Transaction annulée",
+        phone:hx.to,
+        amount:hx.amount,
+        date:new Date().toLocaleString()
+      });
+
+      await push(ref(db,"autopilotHistory"), {
+        action:"✅ Annulation automatique",
+        tx:historyKey,
+        from:hx.from,
+        to:hx.to,
+        amount:hx.amount,
+        date:new Date().toLocaleString()
+      });
+
+    }, (cfg.delay || 1) * 60000);
+  }
+});
+
+// HISTORY VIEW
+onValue(ref(db,"autopilotHistory"), snap=>{
+  autoHistory.innerHTML = "";
+  Object.values(snap.val() || {}).reverse().forEach(h=>{
+    autoHistory.innerHTML += `
+      <div class="auto-card">
+        🤖 ${h.action}<br>
+        📤 ${h.from} ➜ 📥 ${h.to}<br>
+        💰 ${h.amount} FCFA<br>
+        🕒 ${h.date}
+      </div>`;
+  });
+});
+</script>
+
+</body>
+</html>

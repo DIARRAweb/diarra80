@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaliPay - Gestion des cartes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#06142e;
+  color:#0d3b66;
+}
+.page{
+  width:min(94%,1200px);
+  margin:auto;
+  padding:35px 0;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:35px;
+}
+.back{
+  background:#7b8ca6;
+  color:white;
+  padding:14px 22px;
+  border-radius:16px;
+  text-decoration:none;
+  font-weight:900;
+}
+h1{
+  color:white;
+  font-size:38px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+}
+.panel{
+  background:white;
+  border-radius:28px;
+  padding:28px;
+  box-shadow:0 18px 45px rgba(0,0,0,.25);
+}
+label{
+  display:block;
+  margin-top:16px;
+  font-weight:900;
+}
+input,select{
+  width:100%;
+  padding:16px;
+  border-radius:16px;
+  border:1px solid #ccd6e6;
+  font-size:16px;
+  font-weight:800;
+  margin-top:8px;
+}
+button{
+  border:0;
+  padding:16px 22px;
+  border-radius:16px;
+  background:#16a34a;
+  color:white;
+  font-weight:950;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:18px;
+}
+button.danger{background:#d90429}
+button.blue{background:#0d3b66}
+.card-wrap{display:flex;flex-direction:column;gap:18px}
+
+.card-preview,.card-back{
+  width:100%;
+  aspect-ratio:85.6/54;
+  min-height:310px;
+  border-radius:34px;
+  padding:32px;
+  color:white;
+  background:
+    radial-gradient(circle at 18% 16%,rgba(255,255,255,.35),transparent 18%),
+    radial-gradient(circle at 82% 20%,rgba(22,163,74,.35),transparent 24%),
+    linear-gradient(135deg,#f8fbff 0%,#dfeaff 42%,#16a34a 100%);
+  box-shadow:0 28px 70px rgba(13,59,102,.28);
+  position:relative;
+  overflow:hidden;
+  font-family:"Rajdhani",Arial,sans-serif;
+}
+
+.card-back{
+  background:
+    radial-gradient(circle at 80% 20%,rgba(22,163,74,.28),transparent 24%),
+    linear-gradient(135deg,#ffffff 0%,#dfeaff 50%,#0d3b66 100%);
+}
+
+.card-preview::after,
+.card-back::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent 25%,rgba(255,255,255,.25) 48%,transparent 70%);
+  transform:translateX(-120%);
+  animation:cardShine 4s ease-in-out infinite;
+  z-index:3;
+  pointer-events:none;
+}
+
+@keyframes cardShine{
+  0%,55%{transform:translateX(-120%)}
+  100%{transform:translateX(120%)}
+}
+
+.card-lines{
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      120deg,
+      rgba(13,59,102,.055) 0,
+      rgba(13,59,102,.055) 2px,
+      transparent 2px,
+      transparent 12px
+    );
+  z-index:1;
+}
+
+.monument-img{
+  position:absolute;
+  right:-8px;
+  bottom:-8px;
+  width:46%;
+  height:auto;
+  opacity:.18;
+  filter:drop-shadow(0 16px 22px rgba(13,59,102,.22));
+  z-index:1;
+  pointer-events:none;
+}
+
+.back-monument{
+  left:-15px;
+  right:auto;
+  bottom:-10px;
+  opacity:.14;
+}
+
+.card-content{position:relative;z-index:2;height:100%}
+
+.brand{
+  display:inline-block;
+  font-family:"Bebas Neue",Arial,sans-serif;
+  font-size:32px;
+  font-weight:400;
+  letter-spacing:2.5px;
+  color:#0d3b66;
+  padding:6px 0;
+  background:transparent;
+  text-shadow:0 1px 0 rgba(255,255,255,.8);
+  box-shadow:none;
+}
+
+.user-photo{
+  position:absolute;
+  right:28px;
+  top:28px;
+  width:72px;
+  height:72px;
+  border-radius:22px;
+  object-fit:cover;
+  border:3px solid #16a34a;
+  box-shadow:0 10px 28px rgba(13,59,102,.25);
+  background:white;
+}
+
+.chip{
+  width:78px;
+  height:58px;
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 30% 25%,#fff4b2,transparent 26%),
+    linear-gradient(145deg,#ffe58a,#d7a828 48%,#8b6500);
+  margin-top:34px;
+  position:relative;
+  box-shadow:
+    inset 0 0 0 3px rgba(255,255,255,.65),
+    0 12px 24px rgba(13,59,102,.20);
+}
+
+.chip:before{
+  content:"";
+  position:absolute;
+  inset:9px;
+  border:2px solid rgba(255,255,255,.75);
+  border-radius:10px;
+}
+
+.chip:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  width:2px;
+  height:100%;
+  background:rgba(255,255,255,.65);
+  box-shadow:
+    -24px 0 rgba(255,255,255,.45),
+    24px 0 rgba(255,255,255,.45);
+}
+
+.number{
+  font-family:"Bebas Neue","Courier New",monospace;
+  font-size:42px;
+  letter-spacing:5px;
+  margin-top:24px;
+  color:#0d3b66;
+  text-shadow:0 2px 0 rgba(255,255,255,.75);
+}
+
+.card-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-top:26px;
+  padding-right:10px;
+}
+
+.small{
+  font-family:"Rajdhani",Arial,sans-serif;
+  font-size:12px;
+  color:#0d3b66;
+  opacity:.8;
+  letter-spacing:1.2px;
+  font-weight:700;
+}
+
+.big{
+  font-family:"Bebas Neue",Arial,sans-serif;
+  font-size:24px;
+  font-weight:400;
+  letter-spacing:1.5px;
+  margin-top:4px;
+  color:#0d3b66;
+}
+
+.mag-strip{
+  height:52px;
+  background:#06142e;
+  margin:20px -32px 28px;
+  box-shadow:0 8px 18px rgba(13,59,102,.25);
+}
+
+.signature-row{
+  display:grid;
+  grid-template-columns:1fr 90px;
+  gap:14px;
+  align-items:center;
+}
+
+.signature{
+  height:42px;
+  background:#ffffff;
+  border-radius:8px;
+  color:#111;
+  padding:12px;
+  font-family:"Rajdhani",Arial,sans-serif;
+  font-weight:900;
+}
+
+.cvv-box{
+  height:42px;
+  background:white;
+  color:#111;
+  border-radius:8px;
+  padding:12px;
+  text-align:center;
+  font-family:"Bebas Neue",Arial,sans-serif;
+  font-size:22px;
+  letter-spacing:2px;
+}
+
+.qr-zone{
+  margin-top:18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.qr-zone canvas{
+  background:white;
+  border-radius:12px;
+  padding:8px;
+}
+
+.qr-text{
+  font-size:13px;
+  line-height:1.45;
+  color:#0d3b66;
+  font-weight:800;
+}
+
+.lost-text{
+  margin-top:12px;
+  font-size:13px;
+  line-height:1.45;
+  color:#0d3b66;
+  font-weight:900;
+}
+
+#printZone{
+  position:absolute;
+  left:-99999px;
+  top:0;
+  width:956px;
+  background:#eef3fb;
+  padding:50px;
+}
+
+#printZone .card-preview,
+#printZone .card-back{
+  width:856px;
+  height:540px;
+  min-height:540px;
+  border-radius:54px;
+  padding:52px;
+}
+
+#printZone .brand{font-size:48px}
+#printZone .user-photo{
+  width:92px;
+  height:92px;
+  top:52px;
+  right:52px;
+}
+#printZone .chip{
+  width:106px;
+  height:76px;
+  margin-top:55px;
+}
+#printZone .number{
+  font-size:58px;
+  letter-spacing:8px;
+  margin-top:36px;
+}
+#printZone .small{font-size:17px}
+#printZone .big{font-size:34px}
+#printZone .mag-strip{
+  height:70px;
+  margin:34px -52px 42px;
+}
+#printZone .signature{
+  height:58px;
+  font-size:22px;
+}
+#printZone .cvv-box{
+  height:58px;
+  font-size:30px;
+}
+#printZone .qr-text,
+#printZone .lost-text{
+  font-size:17px;
+}
+
+@media(max-width:850px){
+  .grid{grid-template-columns:1fr}
+  h1{font-size:28px}
+}
+</style>
+
+
+
+</head>
+
+<body>
+<div class="page">
+
+  <div class="top">
+    <a class="back" href="admin.html">← Admin</a>
+    <h1>Gestion des cartes MaliPay</h1>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <h2>Créer une carte utilisateur</h2>
+
+      <label>Numéro utilisateur</label>
+      <input id="userPhone" placeholder="+22370004075">
+
+      <label>Date d’expiration</label>
+      <input id="expiryDate" type="month">
+
+      <label>Type de carte</label>
+      <select id="cardType">
+        <option value="STANDARD">Standard</option>
+        <option value="PREMIUM">Premium</option>
+        <option value="BUSINESS">Business</option>
+        <option value="GOLD">Gold</option>
+      </select>
+
+      <label>Statut initial</label>
+      <select id="cardStatus">
+        <option value="active">Active</option>
+        <option value="blocked">Bloquée</option>
+      </select>
+
+      <button id="generateBtn" onclick="generateCard()">Générer carte PDF</button>
+      <p id="msg"></p>
+    </div>
+
+    <div class="card-wrap">
+
+    <div class="card-preview" id="previewFront">
+      <div class="card-lines"></div>
+      <img class="monument-img" id="frontMonument" src="" alt="">
+      <div class="card-content">
+      <div class="brand">MALIPAY CARD</div>
+      <img id="previewPhoto" class="user-photo">
+
+      <div class="chip"></div>
+      <div class="number" id="previewNumber">•••• •••• •••• ••••</div>
+
+      <div class="card-row">
+        <div>
+          <div class="small">TITULAIRE</div>
+          <div class="big" id="previewName">---</div>
+        </div>
+        <div>
+          <div class="small">EXP</div>
+          <div class="big" id="previewExp">--/--</div>
+        </div>
+        <div>
+          <div class="small">STATUT</div>
+          <div class="big" id="previewStatus">ACTIVE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-back" id="previewBack">
+      <div class="card-lines"></div>
+      <img class="monument-img back-monument" id="backMonument" src="" alt="">
+      <div class="card-content">
+          <div class="brand">MALIPAY CARD</div>
+      <div class="mag-strip"></div>
+
+      <div class="signature-row">
+        <div class="signature" id="previewSignature">Signature titulaire</div>
+        <div class="cvv-box" id="previewCvv">•••</div>
+      </div>
+
+      <div class="qr-zone">
+        <canvas id="previewQr" width="90" height="90"></canvas>
+        <div class="qr-text">
+          Scanner cette zone avec MaliPay pour reconnaître la carte.<br>
+          La puce physique sera représentée par ce QR sécurisé.
+        </div>
+      </div>
+
+      <div class="lost-text" id="previewLostText">
+        En cas de perte : contactez le propriétaire ou le service MaliPay : +223 74 81 66 85
+      </div>
+    </div>
+  </div>
+
+</div>
+
+  </div>
+
+  <div class="panel storage">
+    <div class="storage-head">
+      <h2>Stockage / suivi des cartes</h2>
+      <button onclick="toggleStorage()">Ouvrir / Fermer</button>
+    </div>
+
+    <div id="storageContent">
+      <input id="searchInput" placeholder="Recherche nom, téléphone ou numéro carte..." oninput="renderCards()">
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Téléphone</th>
+            <th>Numéro carte</th>
+            <th>Expiration</th>
+            <th>Statut</th>
+            <th>Utilisation</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cardsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, get, push, update, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBsKMDF-nX-4tM_Hh0JPozZRuY9x9sFmh4",
+  authDomain: "securite-53ada.firebaseapp.com",
+  databaseURL:"https://securite-53ada-default-rtdb.firebaseio.com/",
+  projectId: "securite-53ada",
+  storageBucket: "securite-53ada.firebasestorage.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let allCards = {};
+let lastGeneratedCard = null;
+
+const loggedUser = JSON.parse(localStorage.getItem("loggedUser") || "null");
+
+if(!loggedUser){
+  location.href = "index.html";
+}
+
+function cleanPhone(phone){
+  return String(phone || "").replace(/\s+/g,"");
+}
+
+function generateCardNumber(){
+  let n = "";
+  for(let i=0;i<16;i++){
+    n += Math.floor(Math.random()*10);
+  }
+  return n.replace(/(.{4})/g,"$1 ").trim();
+}
+
+function generateSecurityCode(){
+  return String(Math.floor(100 + Math.random() * 900));
+}
+
+function generateCardToken(){
+  return "MLP-CARD-" + Date.now() + "-" + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+function buildCardQR(card){
+  return JSON.stringify({
+    type: "MALIPAY_CARD",
+    cardId: card.cardId,
+    cardToken: card.cardToken,
+    cardNumber: card.cardNumber,
+    userPhone: card.userPhone,
+    expiry: card.expiry
+  });
+}
+
+function formatExp(monthValue){
+  if(!monthValue) return "--/--";
+  const [year,month] = monthValue.split("-");
+  return month + "/" + year.slice(-2);
+}
+
+function getToday(){
+  return new Date().toLocaleString("fr-FR", { timeZone:"Africa/Bamako" });
+}
+
+function createMonumentBase64(){
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520">
+    <path d="M200 30 L232 185 L375 170 L255 250 L315 450 L200 330 L85 450 L145 250 L25 170 L168 185 Z"
+      fill="#0d3b66" opacity="0.95"/>
+    <path d="M200 70 L220 195 L330 190 L235 252 L280 405 L200 310 L120 405 L165 252 L70 190 L180 195 Z"
+      fill="#16a34a" opacity="0.85"/>
+    <rect x="168" y="250" width="64" height="210" rx="22" fill="#0d3b66"/>
+    <rect x="145" y="455" width="110" height="30" rx="12" fill="#0d3b66"/>
+  </svg>`;
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const front = document.getElementById("frontMonument");
+  const back = document.getElementById("backMonument");
+
+  if(front) front.src = createMonumentBase64();
+  if(back) back.src = createMonumentBase64();
+});
+
+function updatePreview(name="---", number="•••• •••• •••• ••••", exp="--/--", cvv="•••", status="active", qrData="", photo="", phone=""){
+  document.getElementById("previewName").innerText = name;
+  document.getElementById("previewNumber").innerText = number;
+  document.getElementById("previewExp").innerText = exp;
+  document.getElementById("previewCvv").innerText = cvv;
+  document.getElementById("previewSignature").innerText = name;
+  document.getElementById("previewStatus").innerText = status === "active" ? "ACTIVE" : "BLOQUÉE";
+
+  const img = document.getElementById("previewPhoto");
+  if(img){
+    img.src = photo || createAvatarBase64(name);
+  }
+
+  const lost = document.getElementById("previewLostText");
+  if(lost){
+    lost.innerText = "En cas de perte : contactez le propriétaire " + (phone || "") + " ou le service MaliPay : +223 74 81 66 85";
+  }
+
+  const qrCanvas = document.getElementById("previewQr");
+  if(qrCanvas && window.QRCode && qrData){
+    QRCode.toCanvas(qrCanvas, qrData, {
+      width: 90,
+      margin: 1
+    });
+  }
+}
+
+window.generateCard = async function(){
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("generateBtn");
+
+  msg.innerText = "⏳ Génération...";
+  btn.disabled = true;
+  btn.innerText = "⏳ Génération...";
+
+  try{
+    const phone = cleanPhone(document.getElementById("userPhone").value);
+    const expiryRaw = document.getElementById("expiryDate").value;
+    const cardType = document.getElementById("cardType").value;
+    const status = document.getElementById("cardStatus").value;
+
+    if(!phone || !expiryRaw){
+      msg.innerText = "❌ Numéro utilisateur et date d’expiration obligatoires.";
+      return;
+    }
+
+    const userSnap = await get(ref(db, "users/" + phone));
+
+    if(!userSnap.exists()){
+      msg.innerText = "❌ Utilisateur introuvable.";
+      return;
+    }
+
+    const user = userSnap.val();
+
+    const cardNumber = generateCardNumber();
+    const securityCode = generateSecurityCode();
+    const cardToken = generateCardToken();
+    const cardId = "CARD-" + Date.now();
+    const exp = formatExp(expiryRaw);
+
+    const cardData = {
+      cardId,
+      cardToken,
+      userPhone: phone,
+      userName: user.name || "Utilisateur",
+      userPhoto: user.photo || "",
+      cardNumber,
+      securityCode,
+      cardType,
+      expiry: exp,
+      expiryRaw,
+      status,
+      usageStatus: "free",
+      createdAt: Date.now(),
+      createdDate: getToday(),
+      createdBy: loggedUser.phone || "admin"
+    };
+
+    await update(ref(db, "malipayCards/" + cardId), cardData);
+
+    await push(ref(db, "malipayCardHistory/" + cardId), {
+      type:"created",
+      message:"Carte créée par l’administration MaliPay",
+      date:getToday(),
+      createdAt:Date.now()
+    });
+
+    lastGeneratedCard = cardData;
+
+    updatePreview(
+        cardData.userName,
+        cardData.cardNumber,
+        cardData.expiry,
+        cardData.securityCode,
+        cardData.status,
+        buildCardQR(cardData),
+        cardData.userPhoto,
+        cardData.userPhone
+    );
+
+    await createPDF(cardData);
+
+    msg.innerText = "✅ Carte créée et PDF généré.";
+
+  }catch(error){
+    console.error(error);
+    msg.innerText = "❌ Erreur : " + error.message;
+
+  }finally{
+    btn.disabled = false;
+    btn.innerText = "Générer carte PDF";
+  }
+};
+
+async function createPDF(card){
+  updatePreview(
+    card.userName,
+    card.cardNumber,
+    card.expiry,
+    card.securityCode,
+    card.status,
+    buildCardQR(card),
+    card.userPhoto,
+    card.userPhone
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  let printZone = document.getElementById("printZone");
+  if(printZone) printZone.remove();
+
+  printZone = document.createElement("div");
+  printZone.id = "printZone";
+
+  const safePhoto = await imageUrlToBase64(card.userPhoto, card.userName);
+
+  printZone.innerHTML = `
+    <div class="card-preview" id="pdfFront">
+      <div class="card-lines"></div>
+      <div class="card-content">
+        <div class="brand">MALIPAY CARD</div>
+        <img class="user-photo" src="${safePhoto}">
+
+        <div class="chip"></div>
+        <div class="number">${card.cardNumber}</div>
+
+        <div class="card-row">
+          <div>
+            <div class="small">TITULAIRE</div>
+            <div class="big">${card.userName}</div>
+          </div>
+          <div>
+            <div class="small">EXP</div>
+            <div class="big">${card.expiry}</div>
+          </div>
+          <div>
+            <div class="small">STATUT</div>
+            <div class="big">${card.status === "active" ? "ACTIVE" : "BLOQUÉE"}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:35px"></div>
+
+    <div class="card-back" id="pdfBack">
+      <div class="card-lines"></div>
+      <div class="card-content">
+        <div class="brand">MALIPAY CARD</div>
+        <div class="mag-strip"></div>
+
+        <div class="signature-row">
+          <div class="signature">${card.userName}</div>
+          <div class="cvv-box">${card.securityCode}</div>
+        </div>
+
+        <div class="qr-zone">
+          <canvas id="pdfQr" width="120" height="120"></canvas>
+          <div class="qr-text">
+            Carte MaliPay sécurisée<br>
+            ID : ${card.cardId}<br>
+            Scanner avec MaliPay pour dépôt ou paiement.
+          </div>
+        </div>
+
+        <div class="lost-text">
+          En cas de perte : contactez le propriétaire ${card.userPhone}
+          ou le service MaliPay : +223 74 81 66 85
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(printZone);
+
+  await QRCode.toCanvas(document.getElementById("pdfQr"), buildCardQR(card), {
+    width: 120,
+    margin: 1
+  });
+
+  await waitForImages(printZone);
+  await new Promise(resolve => setTimeout(resolve, 700));
+
+  const frontCanvas = await html2canvas(document.getElementById("pdfFront"), {
+    scale: 4,
+    backgroundColor: null,
+    useCORS: true,
+    allowTaint: false
+  });
+
+  const backCanvas = await html2canvas(document.getElementById("pdfBack"), {
+    scale: 4,
+    backgroundColor: null,
+    useCORS: true,
+    allowTaint: false
+  });
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("portrait", "mm", "a4");
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+
+  pdf.setFillColor(238, 243, 251);
+  pdf.rect(0, 0, 210, 297, "F");
+
+  const cardWidth = 85.6;
+  const cardHeight = 54;
+  const x = (pageWidth - cardWidth) / 2;
+
+  const yFront = 18;
+  const yBack = 80;
+
+  pdf.addImage(frontCanvas.toDataURL("image/png"), "PNG", x, yFront, cardWidth, cardHeight);
+
+
+
+  pdf.addImage(backCanvas.toDataURL("image/png"), "PNG", x, yBack, cardWidth, cardHeight);
+
+  pdf.setFontSize(8);
+  pdf.setTextColor(0, 0, 0);
+  pdf.text("Carte générée par l'administration MaliPay", x, 145);
+  pdf.text("ID carte : " + card.cardId, x, 151);
+  pdf.text("Téléphone : " + card.userPhone, x, 157);
+
+  pdf.save(card.cardId + ".pdf");
+
+  printZone.remove();
+}
+
+
+function createAvatarBase64(name){
+  const canvas = document.createElement("canvas");
+  canvas.width = 220;
+  canvas.height = 220;
+  const ctx = canvas.getContext("2d");
+
+  const initials = String(name || "MP")
+    .trim()
+    .split(/\s+/)
+    .slice(0,2)
+    .map(x => x[0]?.toUpperCase() || "")
+    .join("") || "MP";
+
+  const gradient = ctx.createLinearGradient(0,0,220,220);
+  gradient.addColorStop(0,"#0d3b66");
+  gradient.addColorStop(1,"#16a34a");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0,0,220,220);
+  ctx.fillStyle = "#fff";
+  ctx.font = "900 76px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(initials,110,112);
+
+  return canvas.toDataURL("image/png");
+}
+
+async function imageUrlToBase64(url, name){
+  if(!url) return createAvatarBase64(name);
+  if(String(url).startsWith("data:image")) return url;
+
+  try{
+    const response = await fetch(url, { mode:"cors", cache:"no-store" });
+    if(!response.ok) throw new Error("Image bloquée : " + response.status);
+
+    const blob = await response.blob();
+
+    return await new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }catch(e){
+    console.log("Photo impossible à charger, avatar généré :", e);
+    return createAvatarBase64(name);
+  }
+}
+
+async function waitForImages(container){
+  const images = Array.from(container.querySelectorAll("img"));
+  await Promise.all(images.map(img => new Promise(resolve=>{
+    if(img.complete && img.naturalWidth > 0) return resolve();
+    img.onload = resolve;
+    img.onerror = resolve;
+  })));
+}
+
+
+
+onValue(ref(db,"malipayCards"), snap=>{
+  allCards = snap.val() || {};
+  renderCards();
+});
+
+window.renderCards = function(){
+  const table = document.getElementById("cardsTable");
+  const q = String(document.getElementById("searchInput").value || "").toLowerCase();
+
+  table.innerHTML = "";
+
+  const cards = Object.values(allCards)
+    .filter(c =>
+      String(c.userName || "").toLowerCase().includes(q) ||
+      String(c.userPhone || "").toLowerCase().includes(q) ||
+      String(c.cardNumber || "").toLowerCase().includes(q)
+    )
+    .sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+
+  if(cards.length === 0){
+    table.innerHTML = `<tr><td colspan="8">Aucune carte trouvée.</td></tr>`;
+    return;
+  }
+
+  cards.forEach(card=>{
+    table.innerHTML += `
+      <tr>
+        <td>${card.userName}</td>
+        <td>${card.userPhone}</td>
+        <td>${card.cardNumber}</td>
+        <td>${card.expiry}</td>
+        <td><span class="badge ${card.status === "active" ? "active" : "blocked"}">${card.status}</span></td>
+        <td><span class="badge ${card.usageStatus === "using" ? "using" : "free"}">${card.usageStatus === "using" ? "En cours" : "Libre"}</span></td>
+        <td>${card.createdDate}</td>
+        <td class="actions">
+          <button class="blue" onclick="reprintCard('${card.cardId}')">PDF</button>
+          <button onclick="toggleCardStatus('${card.cardId}','${card.status}')">${card.status === "active" ? "Bloquer" : "Activer"}</button>
+          <button class="danger" onclick="markUsing('${card.cardId}')">Utilisation</button>
+        </td>
+      </tr>
+    `;
+  });
+};
+
+window.reprintCard = function(cardId){
+  const card = allCards[cardId];
+  if(card) createPDF(card);
+};
+
+window.toggleCardStatus = async function(cardId,currentStatus){
+  const newStatus = currentStatus === "active" ? "blocked" : "active";
+
+  await update(ref(db,"malipayCards/" + cardId), {
+    status:newStatus,
+    updatedAt:Date.now()
+  });
+
+  await push(ref(db,"malipayCardHistory/" + cardId), {
+    type:"status_change",
+    message:"Statut changé en " + newStatus,
+    date:getToday(),
+    createdAt:Date.now()
+  });
+};
+
+window.markUsing = async function(cardId){
+  await update(ref(db,"malipayCards/" + cardId), {
+    usageStatus:"using",
+    lastUsedAt:Date.now()
+  });
+
+  await push(ref(db,"malipayCardHistory/" + cardId), {
+    type:"usage",
+    message:"Carte signalée en cours d’utilisation",
+    date:getToday(),
+    createdAt:Date.now()
+  });
+
+  setTimeout(async ()=>{
+    await update(ref(db,"malipayCards/" + cardId), {
+      usageStatus:"free"
+    });
+  }, 10000);
+};
+
+window.toggleStorage = function(){
+  const box = document.getElementById("storageContent");
+  box.style.display = box.style.display === "none" ? "block" : "none";
+};
+</script>
+
+</body>
+</html>
