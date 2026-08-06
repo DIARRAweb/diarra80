@@ -1154,6 +1154,90 @@ label i,
   content: "" !important;
 }
 
+  /* =====================================================
+   CORRECTION DÉFINITIVE — FICHE CRÉER UN COMPTE
+===================================================== */
+
+/*
+ * Fond de la fenêtre.
+ */
+#registerModal.modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 14px !important;
+  overflow: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+/*
+ * Fiche principale de création de compte.
+ */
+#registerModal .register-modal {
+  width: min(94%, 670px) !important;
+  max-width: 670px !important;
+
+  /*
+   * La hauteur sera corrigée par JavaScript
+   * à chaque ouverture selon la taille réelle
+   * de l’écran.
+   */
+  height: 585px !important;
+  min-height: 585px !important;
+  max-height: 585px !important;
+
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  margin: auto !important;
+  padding: 22px !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+
+  box-sizing: border-box !important;
+
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+/*
+ * Version téléphone.
+ */
+@media (max-width: 520px) {
+  #registerModal.modal-overlay {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      10px
+      max(12px, env(safe-area-inset-bottom))
+      10px !important;
+  }
+
+  #registerModal .register-modal {
+    width: 94% !important;
+    max-width: 430px !important;
+
+    height: 585px !important;
+    min-height: 585px !important;
+    max-height: 585px !important;
+
+    padding: 18px !important;
+    border-radius: 26px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
 </style>
 
 
